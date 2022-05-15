@@ -1,5 +1,3 @@
-use std::sync::mpsc::Sender;
-
 use crate::ClientOrHost;
 
 pub enum AppEvent {

@@ -1,13 +1,11 @@
-use std::borrow::BorrowMut;
-use std::io::{self, prelude::*, BufReader, Write};
-use std::net::{TcpListener, TcpStream};
-use std::sync::mpsc::{self, Receiver, Sender};
+use std::io::Write;
+use std::sync::mpsc::{Receiver, Sender};
 use std::sync::{Arc, Mutex};
-use std::time;
-use std::{str, thread};
 
 use vizia::prelude::*;
 
+use crate::client_handler::ClientHandler;
+use crate::server_handler::ServerHandler;
 use crate::{AppEvent, ClientOrHost};
 
 #[derive(Lens)]
@@ -29,59 +27,8 @@ pub struct AppData {
     // List of messages
     pub messages: Vec<String>,
 
-    pub client_stream: Option<TcpStream>,
-
-    pub senders: Arc<Mutex<Vec<Sender<String>>>>,
-    pub receiver: Option<Receiver<String>>,
-}
-
-impl AppData {
-    fn connect_client(&mut self) -> std::io::Result<()> {
-        self.client_stream = Some(TcpStream::connect("127.0.0.1:7878")?);
-
-        Ok(())
-    }
-
-    fn start_server(&mut self, cx: &mut Context) -> std::io::Result<()> {
-        let senders = self.senders.clone();
-        cx.spawn(move |cx| {
-            let receiver = TcpListener::bind("127.0.0.1:7878").expect("Failed");
-            for stream in receiver.incoming() {
-                let stream = stream.expect("failed");
-
-                let (tx, rx) = mpsc::channel();
-                senders.lock().unwrap().push(tx);
-
-                cx.spawn(move |cx| {
-                    handle_message(cx, rx, stream);
-                });
-            }
-        });
-
-        Ok(())
-    }
-
-    fn send_message(&mut self, message: &String) {
-        match self.client_or_host {
-            ClientOrHost::Client => {
-                if let Some(stream) = &mut self.client_stream {
-                    stream
-                        .write(message.as_bytes())
-                        .expect("Failed to send message");
-                } else {
-                    println!("No connected stream");
-                }
-            }
-
-            ClientOrHost::Host => {
-                for sender in self.senders.lock().unwrap().iter_mut() {
-                    sender
-                        .send(message.clone())
-                        .expect("Failed to send message from server to clients");
-                }
-            }
-        }
-    }
+    pub server: ServerHandler,
+    pub client: Option<ClientHandler>,
 }
 
 impl Model for AppData {
@@ -114,61 +61,28 @@ impl Model for AppData {
             AppEvent::StartServer => {
                 self.show_login = false;
                 println!("Start the server connection!");
-                //cx.spawn(|cx|{
-                self.start_server(cx).expect("Something went wrong");
-                //});
+                self.server.start_server(cx);
             }
 
             AppEvent::Connect => {
                 self.show_login = false;
                 println!("Connect to server");
-                // cx.spawn(|cx|{
-                //     start_client();
-                // });
-                self.connect_client();
+                self.client = Some(ClientHandler::new("localhost:7878".to_string()));
             }
 
             AppEvent::SendMessage(message) => {
-                println!("Send message: {}", message);
                 self.messages.push(message.clone());
-                self.send_message(message);
+                match self.client_or_host {
+                    ClientOrHost::Client => self.client.as_mut().unwrap().send(message),
+                    ClientOrHost::Host => self.server.send(message),
+                }
+                println!("Send message: {}", message);
             }
 
             AppEvent::AppendMessage(message) => {
+                println!("Rcv message: {}", message);
                 self.messages.push(message.clone());
             }
         });
     }
-}
-
-pub fn handle_message(
-    cx: &mut ContextProxy,
-    rx: Receiver<String>,
-    mut stream: TcpStream,
-) -> std::io::Result<()> {
-    // Handle multiple access stream
-    let mut buf = [0; 512];
-    for _ in 0..1000 {
-        // let the receiver get a message from a sender
-        let bytes_read = stream.read(&mut buf)?;
-        // sender stream in a mutable variable
-        if bytes_read == 0 {
-            return Ok(());
-        }
-
-        for message in &rx {
-            println!("Send: {}", message);
-        }
-
-        //stream.write(&buf[..bytes_read])?;
-        // Print acceptance message
-        //read, print the message sent
-        let message = String::from_utf8_lossy(&buf);
-        println!("from the sender:{}", message);
-        cx.emit(AppEvent::AppendMessage(message.to_string()));
-        // And you can sleep this connection with the connected sender
-        thread::sleep(time::Duration::from_secs(1));
-    }
-    // success value
-    Ok(())
 }

@@ -1,0 +1,12 @@
+{
+    "configurations": [
+        {
+            "type": "lldb-mi",
+            "request": "launch",
+            "name": "LLDB Server",
+            "target": "./target/debug/audio_collab",
+            "cwd": "${workspaceRoot}",
+            "valuesFormatting": "parseText"
+        }
+    ]
+}

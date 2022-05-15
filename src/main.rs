@@ -1,5 +1,6 @@
-use std::sync::{mpsc::Receiver, Arc, Mutex};
+use std::sync::{Arc, Mutex};
 
+use server::server_handler::ServerHandler;
 use vizia::prelude::*;
 
 pub mod ui;
@@ -10,6 +11,12 @@ pub use app_data::*;
 
 pub mod app_event;
 pub use app_event::*;
+
+pub mod client;
+pub use client::*;
+
+pub mod server;
+pub use server::*;
 
 fn main() {
     Application::new(|cx| {
@@ -24,9 +31,8 @@ fn main() {
             client_username: String::new(),
             server_password: String::new(),
             messages: Vec::new(),
-            client_stream: None,
-            senders: Arc::new(Mutex::new(Vec::new())),
-            receiver: None,
+            client: None,
+            server: ServerHandler::new("127.0.0.1:7878".to_string()),
         }
         .build(cx);
 
@@ -38,6 +44,6 @@ fn main() {
             }
         });
     })
-    .always_on_top(true)
+    // .always_on_top(true)
     .run();
 }

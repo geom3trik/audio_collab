@@ -5,4 +5,5 @@ edition = "2021"
 
 
 [dependencies]
-vizia = {git = "https://github.com/vizia/vizia", branch = "spawn"}
+vizia = {git = "https://github.com/vizia/vizia", branch = "main"}
+duplex = "0.12.0"
