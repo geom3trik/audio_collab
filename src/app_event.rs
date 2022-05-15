@@ -1,7 +1,11 @@
+use std::sync::mpsc::Sender;
+
+use crate::ClientOrHost;
 
 pub enum AppEvent {
-
     ToggleLoginScreen,
+
+    SetClientOrHost(ClientOrHost),
 
     SetHostIP(String),
     SetHostPort(String),
@@ -18,8 +22,6 @@ pub enum AppEvent {
     //
     SendMessage(String),
 
-    // 
+    //
     AppendMessage(String),
-
-
 }

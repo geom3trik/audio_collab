@@ -1,9 +1,6 @@
-
-
-
 use vizia::prelude::*;
 
-use crate::{AppEvent, AppData};
+use crate::{AppData, AppEvent};
 
 #[derive(Lens)]
 pub struct ChatUI {
@@ -14,12 +11,13 @@ impl ChatUI {
     pub fn new(cx: &mut Context) -> Handle<Self> {
         Self {
             current_message: String::new(),
-        }.build(cx, |cx|{
+        }
+        .build(cx, |cx| {
             Textbox::new(cx, ChatUI::current_message)
                 .on_submit(|cx, text| cx.emit(AppEvent::SendMessage(text)))
                 .width(Stretch(1.0));
 
-            List::new(cx, AppData::messages, |cx, index, item|{
+            List::new(cx, AppData::messages, |cx, index, item| {
                 Label::new(cx, item);
             });
         })
@@ -28,6 +26,4 @@ impl ChatUI {
     }
 }
 
-impl View for ChatUI {
-
-}
+impl View for ChatUI {}
