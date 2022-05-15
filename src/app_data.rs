@@ -67,7 +67,8 @@ impl Model for AppData {
             AppEvent::Connect => {
                 self.show_login = false;
                 println!("Connect to server");
-                self.client = Some(ClientHandler::new(cx));
+                let address = self.host_ip.clone() + ":" + &self.host_port;
+                self.client = Some(ClientHandler::new(cx, address));
             }
 
             AppEvent::SendMessage(message) => {
