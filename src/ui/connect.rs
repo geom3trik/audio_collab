@@ -57,7 +57,7 @@ impl ConnectUI {
                             HStack::new(cx, |cx| {
                                 VStack::new(cx, |cx| {
                                     Label::new(cx, "Username:");
-                                    Textbox::new(cx, AppData::host_ip).on_submit(|cx, text| {
+                                    Textbox::new(cx, AppData::client_username).on_submit(|cx, text| {
                                         cx.emit(AppEvent::SetClientUsername(text));
                                     });
                                 })
@@ -65,7 +65,7 @@ impl ConnectUI {
 
                                 VStack::new(cx, |cx| {
                                     Label::new(cx, "Server Password:");
-                                    Textbox::new(cx, AppData::host_port).on_submit(|cx, text| {
+                                    Textbox::new(cx, AppData::server_password).on_submit(|cx, text| {
                                         cx.emit(AppEvent::SetServerPassword(text));
                                     });
                                 })
@@ -86,7 +86,7 @@ impl ConnectUI {
                         VStack::new(cx, |cx| {
                             VStack::new(cx, |cx| {
                                 Label::new(cx, "Username:");
-                                Textbox::new(cx, AppData::host_ip).on_submit(|cx, text| {
+                                Textbox::new(cx, AppData::client_username).on_submit(|cx, text| {
                                     cx.emit(AppEvent::SetClientUsername(text));
                                 });
                             })
@@ -94,7 +94,7 @@ impl ConnectUI {
 
                             VStack::new(cx, |cx| {
                                 Label::new(cx, "Server Password:");
-                                Textbox::new(cx, AppData::host_port).on_submit(|cx, text| {
+                                Textbox::new(cx, AppData::server_password).on_submit(|cx, text| {
                                     cx.emit(AppEvent::SetServerPassword(text));
                                 });
                             })

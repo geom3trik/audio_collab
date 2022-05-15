@@ -15,9 +15,9 @@ pub struct ClientHandler {
 
 impl ClientHandler {
 
-    pub fn new(cx: &mut Context) -> ClientHandler {
+    pub fn new(cx: &mut Context, addr: String) -> ClientHandler {
 
-        let mut client = TcpStream::connect("127.0.0.1:7878").expect("Failed to connect");
+        let mut client = TcpStream::connect(addr).expect("Failed to connect");
         client.set_nonblocking(true).unwrap();
 
         let (tx, rx) = mpsc::channel::<String>();
