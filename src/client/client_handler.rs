@@ -14,15 +14,6 @@ pub struct ClientHandler {
 }
 
 impl ClientHandler {
-    // pub fn new(addr: String) -> ClientHandler {
-
-    //     let mut client = TcpStream::connect(addr).expect("Failed to connect");
-    //     client.set_nonblocking(true).unwrap();
-
-    //     ClientHandler {
-    //         tcp_stream: client,
-    //     }
-    // }
 
     pub fn new(cx: &mut Context) -> ClientHandler {
 
