@@ -27,7 +27,7 @@ pub struct AppData {
     // List of messages
     pub messages: Vec<String>,
 
-    pub server: ServerHandler,
+    pub server: Option<ServerHandler>,
     pub client: Option<ClientHandler>,
 }
 
@@ -61,20 +61,21 @@ impl Model for AppData {
             AppEvent::StartServer => {
                 self.show_login = false;
                 println!("Start the server connection!");
-                self.server.start_server(cx);
+                self.server = Some(ServerHandler::new(cx));
             }
 
             AppEvent::Connect => {
                 self.show_login = false;
                 println!("Connect to server");
-                self.client = Some(ClientHandler::new("localhost:7878".to_string()));
+                self.client = Some(ClientHandler::new(cx));
             }
 
             AppEvent::SendMessage(message) => {
                 self.messages.push(message.clone());
                 match self.client_or_host {
                     ClientOrHost::Client => self.client.as_mut().unwrap().send(message),
-                    ClientOrHost::Host => self.server.send(message),
+                    ClientOrHost::Host => self.server.as_mut().unwrap().send(message),
+                    // ClientOrHost::Host => self.server.send(message),
                 }
                 println!("Send message: {}", message);
             }

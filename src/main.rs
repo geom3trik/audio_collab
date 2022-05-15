@@ -32,7 +32,7 @@ fn main() {
             server_password: String::new(),
             messages: Vec::new(),
             client: None,
-            server: ServerHandler::new("127.0.0.1:7878".to_string()),
+            server: None,
         }
         .build(cx);
 
