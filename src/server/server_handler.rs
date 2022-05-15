@@ -121,12 +121,12 @@ impl ServerHandler {
 
         cx.spawn(move |cx|{
             let mut clients = vec![];
-            let (tx, rx) = mpsc::channel::<String>();
+            let (tx, rx) = mpsc::channel::<(SocketAddr, String)>();
 
             loop {
                 if let Ok((mut socket, addr)) = server.accept() {
                     println!("Client {} connected", addr);
-                    clients.push(socket.try_clone().expect("Failed to clone client"));
+                    clients.push((addr, socket.try_clone().expect("Failed to clone client")));
                     
                     let tx = tx.clone();
                     cx.spawn(move |cx|{
@@ -139,7 +139,7 @@ impl ServerHandler {
                                     let msg = String::from_utf8(msg).expect("Invalid utf8 message");
                                     println!("{}, {:?}", addr, msg);
                                     cx.emit(AppEvent::AppendMessage(msg.clone()));
-                                    tx.send(msg).expect("Failed to send message to rx");
+                                    tx.send((addr, msg)).expect("Failed to send message to rx");
                                 }
 
                                 Err(ref err) if err.kind() == ErrorKind::WouldBlock => (),
@@ -156,20 +156,24 @@ impl ServerHandler {
                 }
 
                 // Relay messages from other clients
-                if let Ok(msg) = rx.try_recv() {
-                    clients = clients.into_iter().filter_map(|mut client|{
-                        let mut buff = msg.clone().into_bytes();
-                        buff.resize(512, 0);
-                        client.write_all(&buff).map(|_| client).ok()
+                if let Ok((msg_addr, msg)) = rx.try_recv() {
+                    clients = clients.into_iter().filter_map(|(addr, mut client)|{
+                        if msg_addr != addr {
+                            let mut buff = msg.clone().into_bytes();
+                            buff.resize(512, 0);
+                            client.write_all(&buff).expect("Failed to write to buffer");
+                        }
+                        Some((addr, client))
                     }).collect::<Vec<_>>();
                 }
 
                 // Send messages from server to clients
                 if let Ok(msg) = srx.try_recv() {
-                    clients = clients.into_iter().filter_map(|mut client|{
+                    clients = clients.into_iter().filter_map(|(addr, mut client)|{
                         let mut buff = msg.clone().into_bytes();
                         buff.resize(512, 0);
-                        client.write_all(&buff).map(|_| client).ok()
+                        client.write_all(&buff).expect("Failed to write to buffer");
+                        Some((addr, client))
                     }).collect::<Vec<_>>();
                 }
 
