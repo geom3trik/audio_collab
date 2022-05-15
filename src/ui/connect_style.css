@@ -1,0 +1,82 @@
+
+
+/* * {
+    border-width: 1px;
+    border-color: red;
+} */
+
+connect_view {
+    outer-shadow: 0px 3px 10px #00000040;
+    space: 1s;
+    width: 500px;
+    height: 400px;
+    background-color: white;
+    border-radius: 10px;
+}
+
+connect_view .tabs {
+    height: 50px;
+}
+
+connect_view .tabs label {
+    width: 1s;
+    height: 1s;
+    child-space: 1s;
+}
+
+connect_view .content {
+    child-space: 50px;
+    row-between: 20px;
+}
+
+.input_row {
+    col-between: 20px;
+    height: auto;
+}
+
+.input_row textbox {
+    width: 1s;
+}
+
+.ip_input {
+    width: 1s;
+}
+
+.username_input {
+    width: 1s;
+    height: auto;
+}
+
+.username_input textbox {
+    width: 1s;
+}
+
+.password_input {
+    width: 1s;
+    height: auto;
+}
+
+.password_input textbox {
+    width: 1s;
+}
+
+.port_input {
+    width: 100px;
+}
+
+.indicator {
+    width: 50%;
+    height: 5px;
+    background-color: #005a9e;
+    left: 0%;
+    transition: left 0.1 0.0;
+}
+
+.indicator:checked {
+    left: 50%;
+    transition: left 0.1 0.0;
+}
+
+button.start {
+    space: 1s;
+}
