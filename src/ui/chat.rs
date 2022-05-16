@@ -13,11 +13,13 @@ impl ChatUI {
             current_message: String::new(),
         }
         .build(cx, |cx| {
+            // Message box
             Textbox::new(cx, ChatUI::current_message)
                 .on_submit(|cx, text| cx.emit(AppEvent::SendMessage(text)))
                 .width(Stretch(1.0));
 
-            List::new(cx, AppData::messages, |cx, index, item| {
+            // List of messages
+            List::new(cx, AppData::messages, |cx, _, item| {
                 Label::new(cx, item);
             });
         })

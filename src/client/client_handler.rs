@@ -1,8 +1,7 @@
 use std::{
     io::{Read, Write, ErrorKind},
-    net::{TcpListener, TcpStream},
-    sync::mpsc::{self, Receiver, TryRecvError, Sender},
-    thread,
+    net::TcpStream,
+    sync::mpsc::{self, TryRecvError, Sender}
 };
 
 pub use vizia::prelude::*;
@@ -31,7 +30,7 @@ impl ClientHandler {
                         let msg = String::from_utf8(msg).expect("Invalid utf8 message");
                         println!("Received msg: {:?}", msg);
 
-                        cx.emit(AppEvent::AppendMessage(msg));
+                        cx.emit(AppEvent::AppendMessage(msg)).expect("Failed to send message to app");
                     }
 
                     Err(ref err) if err.kind() == ErrorKind::WouldBlock => (),

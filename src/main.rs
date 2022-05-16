@@ -1,6 +1,3 @@
-use std::sync::{Arc, Mutex};
-
-use server::server_handler::ServerHandler;
 use vizia::prelude::*;
 
 pub mod ui;

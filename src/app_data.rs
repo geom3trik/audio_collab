@@ -1,12 +1,8 @@
-use std::io::Write;
-use std::sync::mpsc::{Receiver, Sender};
-use std::sync::{Arc, Mutex};
-
 use vizia::prelude::*;
 
 use crate::client_handler::ClientHandler;
 use crate::server_handler::ServerHandler;
-use crate::{AppEvent, ClientOrHost};
+use crate::AppEvent;
 
 #[derive(Lens)]
 pub struct AppData {
@@ -87,4 +83,11 @@ impl Model for AppData {
             }
         });
     }
+}
+
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Data)]
+pub enum ClientOrHost {
+    Client,
+    Host,
 }

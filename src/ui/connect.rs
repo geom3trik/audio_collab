@@ -1,12 +1,5 @@
 use vizia::prelude::*;
-
-use crate::{AppData, AppEvent};
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Data)]
-pub enum ClientOrHost {
-    Client,
-    Host,
-}
+use crate::{AppData, AppEvent, ClientOrHost};
 
 pub struct ConnectUI {}
 
