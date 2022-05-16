@@ -15,6 +15,9 @@ pub use client::*;
 pub mod server;
 pub use server::*;
 
+pub mod messages;
+pub use messages::*;
+
 fn main() {
     Application::new(|cx| {
         cx.add_stylesheet("src/ui/connect_style.css")

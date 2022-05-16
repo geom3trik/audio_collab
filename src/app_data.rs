@@ -2,7 +2,7 @@ use vizia::prelude::*;
 
 use crate::client_handler::ClientHandler;
 use crate::server_handler::ServerHandler;
-use crate::AppEvent;
+use crate::{AppEvent, UserMsg};
 
 #[derive(Lens)]
 pub struct AppData {
@@ -21,7 +21,7 @@ pub struct AppData {
     pub server_password: String,
 
     // List of messages
-    pub messages: Vec<String>,
+    pub messages: Vec<UserMsg>,
 
     pub server: Option<ServerHandler>,
     pub client: Option<ClientHandler>,
@@ -57,29 +57,35 @@ impl Model for AppData {
             AppEvent::StartServer => {
                 self.show_login = false;
                 println!("Start the server connection!");
-                self.server = Some(ServerHandler::new(cx));
+                self.server = Some(ServerHandler::new(cx, self.client_username.clone()));
             }
 
             AppEvent::Connect => {
                 self.show_login = false;
                 println!("Connect to server");
                 let address = self.host_ip.clone() + ":" + &self.host_port;
-                self.client = Some(ClientHandler::new(cx, address));
+                self.client = Some(ClientHandler::new(cx, address, self.client_username.clone()));
             }
 
-            AppEvent::SendMessage(message) => {
-                self.messages.push(message.clone());
+            AppEvent::SendMessage(msg) => {
+
+                let msg = UserMsg {
+                    username: self.client_username.clone(),
+                    message: msg.clone()
+                };
+
+                self.messages.push(msg.clone());
                 match self.client_or_host {
-                    ClientOrHost::Client => self.client.as_mut().unwrap().send(message),
-                    ClientOrHost::Host => self.server.as_mut().unwrap().send(message),
+                    ClientOrHost::Client => self.client.as_mut().unwrap().send(&msg),
+                    ClientOrHost::Host => self.server.as_mut().unwrap().send(&msg),
                     // ClientOrHost::Host => self.server.send(message),
                 }
-                println!("Send message: {}", message);
+                println!("Send message: {:?}", msg);
             }
 
-            AppEvent::AppendMessage(message) => {
-                println!("Rcv message: {}", message);
-                self.messages.push(message.clone());
+            AppEvent::AppendMessage(msg) => {
+                println!("Rcv message: {:?}", msg);
+                self.messages.push(msg.clone());
             }
         });
     }

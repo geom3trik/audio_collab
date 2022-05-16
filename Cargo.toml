@@ -6,3 +6,5 @@ edition = "2021"
 
 [dependencies]
 vizia = {git = "https://github.com/vizia/vizia"}
+ron = "0.7"
+serde = { version = "1", features = ["derive"] }

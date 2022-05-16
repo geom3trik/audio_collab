@@ -1,4 +1,4 @@
-use crate::ClientOrHost;
+use crate::{ClientOrHost, UserMsg};
 
 pub enum AppEvent {
     ToggleLoginScreen,
@@ -21,5 +21,5 @@ pub enum AppEvent {
     SendMessage(String),
 
     // Append a received message to the list of messages
-    AppendMessage(String),
+    AppendMessage(UserMsg),
 }

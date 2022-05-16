@@ -1,6 +1,6 @@
 use vizia::prelude::*;
 
-use crate::{AppData, AppEvent};
+use crate::{AppData, AppEvent, UserMsg};
 
 #[derive(Lens)]
 pub struct ChatUI {
@@ -20,7 +20,11 @@ impl ChatUI {
 
             // List of messages
             List::new(cx, AppData::messages, |cx, _, item| {
-                Label::new(cx, item);
+                HStack::new(cx, |cx|{
+                    Label::new(cx, item.then(UserMsg::username))
+                        .width(Pixels(100.0));
+                    Label::new(cx, item.then(UserMsg::message));
+                });
             });
         })
         .child_space(Pixels(20.0))
