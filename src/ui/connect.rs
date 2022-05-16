@@ -31,7 +31,7 @@ impl ConnectUI {
                             HStack::new(cx, |cx| {
                                 VStack::new(cx, |cx| {
                                     Label::new(cx, "IP Address:");
-                                    Textbox::new(cx, AppData::host_ip).on_submit(|cx, text| {
+                                    Textbox::new(cx, AppData::host_ip).on_edit(|cx, text| {
                                         cx.emit(AppEvent::SetHostIP(text));
                                     });
                                 })
@@ -39,7 +39,7 @@ impl ConnectUI {
 
                                 VStack::new(cx, |cx| {
                                     Label::new(cx, "Port:");
-                                    Textbox::new(cx, AppData::host_port).on_submit(|cx, text| {
+                                    Textbox::new(cx, AppData::host_port).on_edit(|cx, text| {
                                         cx.emit(AppEvent::SetHostPort(text));
                                     });
                                 })
@@ -50,7 +50,7 @@ impl ConnectUI {
                             HStack::new(cx, |cx| {
                                 VStack::new(cx, |cx| {
                                     Label::new(cx, "Username:");
-                                    Textbox::new(cx, AppData::client_username).on_submit(|cx, text| {
+                                    Textbox::new(cx, AppData::client_username).on_edit(|cx, text| {
                                         cx.emit(AppEvent::SetClientUsername(text));
                                     });
                                 })
@@ -58,7 +58,7 @@ impl ConnectUI {
 
                                 VStack::new(cx, |cx| {
                                     Label::new(cx, "Server Password:");
-                                    Textbox::new(cx, AppData::server_password).on_submit(|cx, text| {
+                                    Textbox::new(cx, AppData::server_password).on_edit(|cx, text| {
                                         cx.emit(AppEvent::SetServerPassword(text));
                                     });
                                 })
@@ -79,7 +79,7 @@ impl ConnectUI {
                         VStack::new(cx, |cx| {
                             VStack::new(cx, |cx| {
                                 Label::new(cx, "Username:");
-                                Textbox::new(cx, AppData::client_username).on_submit(|cx, text| {
+                                Textbox::new(cx, AppData::client_username).on_edit(|cx, text| {
                                     cx.emit(AppEvent::SetClientUsername(text));
                                 });
                             })
@@ -87,7 +87,7 @@ impl ConnectUI {
 
                             VStack::new(cx, |cx| {
                                 Label::new(cx, "Server Password:");
-                                Textbox::new(cx, AppData::server_password).on_submit(|cx, text| {
+                                Textbox::new(cx, AppData::server_password).on_edit(|cx, text| {
                                     cx.emit(AppEvent::SetServerPassword(text));
                                 });
                             })
