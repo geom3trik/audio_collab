@@ -68,7 +68,8 @@ impl ServerHandler {
                                         break;
                                     }
 
-                                    let message = String::from_utf8(buff).unwrap();
+                                    let message = buff.into_iter().take_while(|&x| x != 0).collect::<Vec<_>>();
+                                    let message = String::from_utf8(message).unwrap();
                                     let msg = UserMsg::from_msg(&message);
                                         
                                     if let Some(user) = users_ref.lock().unwrap().get(&addr) {
