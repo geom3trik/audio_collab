@@ -37,7 +37,9 @@ impl ClientHandler {
                         continue;
                     }
 
-                    let msg = UserMsg::from_bytes(&buff);
+                    let message = String::from_utf8(buff).unwrap();
+                    let msg = UserMsg::from_msg(&message);
+                    
                     println!("Received msg: {:?}", msg);
 
                     cx.emit(AppEvent::AppendMessage(msg))

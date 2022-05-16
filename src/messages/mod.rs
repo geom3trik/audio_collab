@@ -12,6 +12,7 @@ pub trait MessageTrait<'a>: Sized + Deserialize<'a> + Serialize {
     }
 
     fn from_bytes(bytes: &'a [u8]) -> Self {
+        println!("DBG: {:?}", String::from_utf8(bytes.to_vec()).unwrap());
         ron::de::from_bytes(bytes).unwrap()
     }
 

@@ -60,18 +60,16 @@ impl ServerHandler {
                     let users_ref = users.clone();
                     cx.spawn(move |cx| {
                         loop {
-                            let mut buff = [0; 512];
+                            let mut buff = vec![0; 512];
                             match socket.read(&mut buff) {
                                 Ok(length) => {
-                                    println!("Received bytes: {}", buff.len());
-
                                     if length == 0 {
                                         println!("Message couldn't be read correctly somehow. LENGTH = 0");
-                                        continue;
+                                        break;
                                     }
 
-
-                                    let msg = UserMsg::from_bytes(&buff);
+                                    let message = String::from_utf8(buff).unwrap();
+                                    let msg = UserMsg::from_msg(&message);
                                         
                                     if let Some(user) = users_ref.lock().unwrap().get(&addr) {
                                         println!("{}, {:?}", addr, msg);
