@@ -1,6 +1,3 @@
-use std::sync::{Arc, Mutex};
-
-use server::server_handler::ServerHandler;
 use vizia::prelude::*;
 
 pub mod ui;
@@ -18,6 +15,9 @@ pub use client::*;
 pub mod server;
 pub use server::*;
 
+pub mod messages;
+pub use messages::*;
+
 fn main() {
     Application::new(|cx| {
         cx.add_stylesheet("src/ui/connect_style.css")
@@ -26,9 +26,11 @@ fn main() {
         AppData {
             client_or_host: ClientOrHost::Client,
             show_login: true,
+            show_color_picker: false,
             host_ip: String::from("127.0.0.1"),
             host_port: String::from("7878"),
             client_username: String::from("TODO"),
+            client_color: Color::from("#F54E47"),
             server_password: String::from("TODO"),
             messages: Vec::new(),
             client: None,

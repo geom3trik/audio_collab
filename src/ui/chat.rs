@@ -1,6 +1,6 @@
 use vizia::prelude::*;
 
-use crate::{AppData, AppEvent};
+use crate::{AppData, AppEvent, UserMsg};
 
 #[derive(Lens)]
 pub struct ChatUI {
@@ -13,13 +13,23 @@ impl ChatUI {
             current_message: String::new(),
         }
         .build(cx, |cx| {
+            // Message box
             Textbox::new(cx, ChatUI::current_message)
                 .on_submit(|cx, text| cx.emit(AppEvent::SendMessage(text)))
                 .width(Stretch(1.0));
 
-            List::new(cx, AppData::messages, |cx, index, item| {
-                Label::new(cx, item);
-            });
+            // List of messages
+            List::new(cx, AppData::messages, |cx, _, item| {
+                HStack::new(cx, |cx|{
+                    avatar(cx, item);
+                    Label::new(cx, item.then(UserMsg::message));
+                })
+                .col_between(Pixels(10.0))
+                .height(Auto)
+                .child_top(Stretch(1.0))
+                .child_bottom(Stretch(1.0));
+            })
+            .row_between(Pixels(10.0));
         })
         .child_space(Pixels(20.0))
         .row_between(Pixels(20.0))
@@ -27,3 +37,14 @@ impl ChatUI {
 }
 
 impl View for ChatUI {}
+
+
+pub fn avatar<L: Lens<Target = UserMsg>>(cx: &mut Context, user: L) -> Handle<impl View> {
+    Label::new(cx, user.clone().then(UserMsg::username).map(|name| String::from(name.chars().nth(0).unwrap())))
+        .size(Pixels(32.0))
+        .border_radius(Percentage(50.0))
+        .background_color(user.then(UserMsg::color.map(|col| Color::from(col.clone()))))
+        .child_space(Stretch(1.0))
+        .font_size(24.0)
+        .color(Color::white())
+}

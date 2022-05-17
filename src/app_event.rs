@@ -1,4 +1,6 @@
-use crate::ClientOrHost;
+use vizia::prelude::*;
+
+use crate::{ClientOrHost, UserMsg};
 
 pub enum AppEvent {
     ToggleLoginScreen,
@@ -20,6 +22,10 @@ pub enum AppEvent {
     //
     SendMessage(String),
 
-    //
-    AppendMessage(String),
+    // Append a received message to the list of messages
+    AppendMessage(UserMsg),
+
+    OpenColorPicker,
+    CloseColorPicker,
+    ChooseColor(Color),
 }

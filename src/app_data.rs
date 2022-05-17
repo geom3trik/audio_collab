@@ -1,17 +1,15 @@
-use std::io::Write;
-use std::sync::mpsc::{Receiver, Sender};
-use std::sync::{Arc, Mutex};
-
 use vizia::prelude::*;
 
 use crate::client_handler::ClientHandler;
 use crate::server_handler::ServerHandler;
-use crate::{AppEvent, ClientOrHost};
+use crate::{AppEvent, UserMsg};
 
 #[derive(Lens)]
 pub struct AppData {
     // Whether the login screen should be shown
     pub show_login: bool,
+
+    pub show_color_picker: bool,
 
     pub client_or_host: ClientOrHost,
 
@@ -21,11 +19,12 @@ pub struct AppData {
     pub host_port: String,
 
     pub client_username: String,
+    pub client_color: Color,
 
     pub server_password: String,
 
     // List of messages
-    pub messages: Vec<String>,
+    pub messages: Vec<UserMsg>,
 
     pub server: Option<ServerHandler>,
     pub client: Option<ClientHandler>,
@@ -61,30 +60,57 @@ impl Model for AppData {
             AppEvent::StartServer => {
                 self.show_login = false;
                 println!("Start the server connection!");
-                self.server = Some(ServerHandler::new(cx));
+                self.server = Some(ServerHandler::new(cx, self.client_username.clone()));
             }
 
             AppEvent::Connect => {
                 self.show_login = false;
                 println!("Connect to server");
                 let address = self.host_ip.clone() + ":" + &self.host_port;
-                self.client = Some(ClientHandler::new(cx, address));
+                self.client = Some(ClientHandler::new(cx, address, self.client_username.clone()));
             }
 
-            AppEvent::SendMessage(message) => {
-                self.messages.push(message.clone());
+            AppEvent::SendMessage(msg) => {
+
+                let msg = UserMsg {
+                    username: self.client_username.clone(),
+                    message: msg.clone(),
+                    color: self.client_color.to_string(),
+                };
+
+                self.messages.push(msg.clone());
                 match self.client_or_host {
-                    ClientOrHost::Client => self.client.as_mut().unwrap().send(message),
-                    ClientOrHost::Host => self.server.as_mut().unwrap().send(message),
+                    ClientOrHost::Client => self.client.as_mut().unwrap().send(&msg),
+                    ClientOrHost::Host => self.server.as_mut().unwrap().send(&msg),
                     // ClientOrHost::Host => self.server.send(message),
                 }
-                println!("Send message: {}", message);
+                println!("Send message: {:?}", msg);
             }
 
-            AppEvent::AppendMessage(message) => {
-                println!("Rcv message: {}", message);
-                self.messages.push(message.clone());
+            AppEvent::AppendMessage(msg) => {
+                println!("Rcv message: {:?}", msg);
+                self.messages.push(msg.clone());
+            }
+
+            AppEvent::OpenColorPicker => {
+                self.show_color_picker = true;
+            }
+
+            AppEvent::CloseColorPicker => {
+                self.show_color_picker = false;
+            }
+
+            AppEvent::ChooseColor(color) => {
+                self.client_color = color.clone();
+                self.show_color_picker = false;
             }
         });
     }
+}
+
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Data)]
+pub enum ClientOrHost {
+    Client,
+    Host,
 }

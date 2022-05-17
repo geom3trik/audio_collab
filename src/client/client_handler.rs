@@ -1,73 +1,84 @@
 use std::{
-    io::{Read, Write, ErrorKind},
-    net::{TcpListener, TcpStream},
-    sync::mpsc::{self, Receiver, TryRecvError, Sender},
-    thread,
+    io::{ErrorKind, Read, Write},
+    net::TcpStream,
+    sync::mpsc::{self, Sender, TryRecvError},
 };
 
 pub use vizia::prelude::*;
 
-use crate::AppEvent;
+use crate::{AppEvent, UserMsg, MessageTrait};
 
 pub struct ClientHandler {
-    pub sender: Sender<String>,
+    pub username: String,
+    pub sender: Sender<UserMsg>,
 }
 
 impl ClientHandler {
-
-    pub fn new(cx: &mut Context, addr: String) -> ClientHandler {
-
+    pub fn new(cx: &mut Context, addr: String, username: String) -> ClientHandler {
         let mut client = TcpStream::connect(addr).expect("Failed to connect");
         client.set_nonblocking(true).unwrap();
 
-        let (tx, rx) = mpsc::channel::<String>();
+        // Send metadata
+        let mut buff = username.clone().into_bytes();
+        buff.resize(512, 0);
+        client
+            .write_all(&buff)
+            .expect("Failed to send message to server");
 
-        cx.spawn(move |cx|{
-            loop {
-                let mut buff = vec![0; 512];
-                match client.read_exact(&mut buff) {
-                    Ok(_) => {
-                        let msg = buff.into_iter().take_while(|&x| x != 0).collect::<Vec<_>>();
-                        let msg = String::from_utf8(msg).expect("Invalid utf8 message");
-                        println!("Received msg: {:?}", msg);
+        let (tx, rx) = mpsc::channel::<UserMsg>();
 
-                        cx.emit(AppEvent::AppendMessage(msg));
+        cx.spawn(move |cx| loop {
+            let mut buff = vec![0; 512];
+            match client.read(&mut buff) {
+                Ok(length) => {
+
+                    if length == 0 {
+                        println!("Message is empty somehow");
+                        continue;
                     }
 
-                    Err(ref err) if err.kind() == ErrorKind::WouldBlock => (),
-                    Err(_) => {
-                        println!("Connection lost to server");
-                        break;
-                    }
+                    let message = buff.into_iter().take_while(|&x| x != 0).collect::<Vec<_>>();
+                    let message = String::from_utf8(message).unwrap();
+                    let msg = UserMsg::from_msg(&message);
+
+                    println!("Received msg: {:?}", msg);
+
+                    cx.emit(AppEvent::AppendMessage(msg))
+                        .expect("Failed to send message to app");
                 }
 
-                match rx.try_recv() {
-                    Ok(msg) => {
-                        let mut buff = msg.clone().into_bytes();
-                        buff.resize(512, 0);
-                        client.write_all(&buff).expect("Failed to send message to server");
-                    }
-
-                    Err(TryRecvError::Empty) => (),
-
-                    Err(TryRecvError::Disconnected) => break,
+                Err(ref err) if err.kind() == ErrorKind::WouldBlock => (),
+                Err(_) => {
+                    println!("Connection lost to server");
+                    break;
                 }
-
-                std::thread::sleep(std::time::Duration::from_millis(100));
             }
+
+            match rx.try_recv() {
+                Ok(msg) => {
+                    client
+                        .write_all(&msg.to_bytes())
+                        .expect("Failed to send message to server");
+                }
+
+                Err(TryRecvError::Empty) => (),
+
+                Err(TryRecvError::Disconnected) => break,
+            }
+
+            std::thread::sleep(std::time::Duration::from_millis(100));
         });
 
-        ClientHandler { 
+        ClientHandler {
+            username,
             sender: tx.clone(),
         }
-
-
     }
 
-    pub fn send(&mut self, msg: &str) {
-        println!("Send message from client: {}", msg);
-        let mut buff = msg.to_string().into_bytes();
-        buff.resize(512, 0);
-        self.sender.send(msg.to_string()).expect("Failed to send message");
+    pub fn send(&mut self, msg: &UserMsg) {
+        println!("Send message from client: {:?}", msg);
+        self.sender
+            .send(msg.clone())
+            .expect("Failed to send message");
     }
 }
