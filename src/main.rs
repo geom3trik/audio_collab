@@ -26,9 +26,11 @@ fn main() {
         AppData {
             client_or_host: ClientOrHost::Client,
             show_login: true,
+            show_color_picker: false,
             host_ip: String::from("127.0.0.1"),
             host_port: String::from("7878"),
             client_username: String::from("TODO"),
+            client_color: Color::from("#F54E47"),
             server_password: String::from("TODO"),
             messages: Vec::new(),
             client: None,

@@ -1,3 +1,5 @@
+use vizia::prelude::*;
+
 use crate::{ClientOrHost, UserMsg};
 
 pub enum AppEvent {
@@ -22,4 +24,8 @@ pub enum AppEvent {
 
     // Append a received message to the list of messages
     AppendMessage(UserMsg),
+
+    OpenColorPicker,
+    CloseColorPicker,
+    ChooseColor(Color),
 }

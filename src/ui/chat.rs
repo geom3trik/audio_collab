@@ -22,7 +22,7 @@ impl ChatUI {
             // List of messages
             List::new(cx, AppData::messages, |cx, _, item| {
                 HStack::new(cx, |cx|{
-                    avatar(cx, item.then(UserMsg::username));
+                    avatar(cx, item);
                     Label::new(cx, item.then(UserMsg::message));
                 })
                 .height(Auto)
@@ -38,16 +38,16 @@ impl ChatUI {
 impl View for ChatUI {}
 
 
-pub fn avatar<L: Lens<Target = String>>(cx: &mut Context, user: L) -> Handle<impl View> {
-    let mut rand = rand::thread_rng();
-    let r: u8 = rand.gen();
-    let g: u8 = rand.gen();
-    let b: u8 = rand.gen();
+pub fn avatar<L: Lens<Target = UserMsg>>(cx: &mut Context, user: L) -> Handle<impl View> {
+    // let mut rand = rand::thread_rng();
+    // let r: u8 = rand.gen();
+    // let g: u8 = rand.gen();
+    // let b: u8 = rand.gen();
     
-    Label::new(cx, user.map(|name| String::from(name.chars().nth(0).unwrap())))
+    Label::new(cx, user.clone().then(UserMsg::username).map(|name| String::from(name.chars().nth(0).unwrap())))
         .size(Pixels(32.0))
         .border_radius(Percentage(50.0))
-        .background_color(Color::rgb(r, g, b))
+        .background_color(user.then(UserMsg::color.map(|col| Color::from(col.clone()))))
         .child_space(Stretch(1.0))
         .font_size(24.0)
         .color(Color::white())

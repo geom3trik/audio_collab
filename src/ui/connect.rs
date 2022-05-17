@@ -56,6 +56,76 @@ impl ConnectUI {
                                 })
                                 .class("username_input");
 
+                                VStack::new(cx, |cx|{
+                                    Element::new(cx)
+                                        .background_color(AppData::client_color)
+                                        .border_radius(Percentage(50.0))
+                                        .size(Pixels(30.0))
+                                        .on_press(|cx| cx.emit(AppEvent::OpenColorPicker));
+
+                                    Popup::new(cx, AppData::show_color_picker, |cx|{
+                                        HStack::new(cx, |cx|{
+                                            VStack::new(cx, |cx|{
+                                                
+                                                Element::new(cx)
+                                                    .background_color(Color::from("#F54E47"))
+                                                    .border_radius(Percentage(50.0))
+                                                    .size(Pixels(20.0))
+                                                    .on_press(|cx| cx.emit(AppEvent::ChooseColor(Color::from("#F54E47"))));
+                                                Element::new(cx)
+                                                    .background_color(Color::from("#F5E447"))
+                                                    .border_radius(Percentage(50.0))
+                                                    .size(Pixels(20.0))
+                                                    .on_press(|cx| cx.emit(AppEvent::ChooseColor(Color::from("#F5E447"))));
+                                                Element::new(cx)
+                                                    .background_color(Color::from("#47F558"))
+                                                    .border_radius(Percentage(50.0))
+                                                    .size(Pixels(20.0))
+                                                    .on_press(|cx| cx.emit(AppEvent::ChooseColor(Color::from("#47F558"))));
+                                                Element::new(cx)
+                                                    .background_color(Color::from("#4292ED"))
+                                                    .border_radius(Percentage(50.0))
+                                                    .size(Pixels(20.0))
+                                                    .on_press(|cx| cx.emit(AppEvent::ChooseColor(Color::from("#4292ED"))));
+                                                
+                                            })
+                                            .row_between(Pixels(5.0));
+
+                                            VStack::new(cx, |cx|{
+                                                Element::new(cx)
+                                                    .background_color(Color::from("#A242ED"))
+                                                    .border_radius(Percentage(50.0))
+                                                    .size(Pixels(20.0))
+                                                    .on_press(|cx| cx.emit(AppEvent::ChooseColor(Color::from("#A242ED"))));
+                                                Element::new(cx)
+                                                    .background_color(Color::from("#ED42BD"))
+                                                    .border_radius(Percentage(50.0))
+                                                    .size(Pixels(20.0))
+                                                    .on_press(|cx| cx.emit(AppEvent::ChooseColor(Color::from("#ED42BD"))));
+                                                Element::new(cx)
+                                                    .background_color(Color::from("#F58853"))
+                                                    .border_radius(Percentage(50.0))
+                                                    .size(Pixels(20.0))
+                                                    .on_press(|cx| cx.emit(AppEvent::ChooseColor(Color::from("#F58853"))));
+                                                Element::new(cx)
+                                                    .background_color(Color::from("#F58853"))
+                                                    .border_radius(Percentage(50.0))
+                                                    .size(Pixels(20.0))
+                                                    .on_press(|cx| cx.emit(AppEvent::ChooseColor(Color::from("#F58853"))));
+                                            })
+                                            .row_between(Pixels(5.0));
+                                        })
+                                        .col_between(Pixels(5.0))
+                                        .child_space(Pixels(5.0));
+                                    })
+                                    .background_color(Color::white())
+                                    .size(Auto);
+                                })
+                                .top(Percentage(100.0))
+                                .size(Auto);
+                                
+
+
                                 VStack::new(cx, |cx| {
                                     Label::new(cx, "Server Password:");
                                     Textbox::new(cx, AppData::server_password).on_edit(|cx, text| {

@@ -9,6 +9,8 @@ pub struct AppData {
     // Whether the login screen should be shown
     pub show_login: bool,
 
+    pub show_color_picker: bool,
+
     pub client_or_host: ClientOrHost,
 
     // The host IP address. Used by the client to connect to the host.
@@ -17,6 +19,7 @@ pub struct AppData {
     pub host_port: String,
 
     pub client_username: String,
+    pub client_color: Color,
 
     pub server_password: String,
 
@@ -71,7 +74,8 @@ impl Model for AppData {
 
                 let msg = UserMsg {
                     username: self.client_username.clone(),
-                    message: msg.clone()
+                    message: msg.clone(),
+                    color: self.client_color.to_string(),
                 };
 
                 self.messages.push(msg.clone());
@@ -86,6 +90,19 @@ impl Model for AppData {
             AppEvent::AppendMessage(msg) => {
                 println!("Rcv message: {:?}", msg);
                 self.messages.push(msg.clone());
+            }
+
+            AppEvent::OpenColorPicker => {
+                self.show_color_picker = true;
+            }
+
+            AppEvent::CloseColorPicker => {
+                self.show_color_picker = false;
+            }
+
+            AppEvent::ChooseColor(color) => {
+                self.client_color = color.clone();
+                self.show_color_picker = false;
             }
         });
     }

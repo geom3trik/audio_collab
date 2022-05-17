@@ -5,12 +5,16 @@
     border-color: red;
 } */
 
+* {
+    color: #bdb5b5;
+}
+
 connect_view {
-    outer-shadow: 0px 3px 10px #00000040;
+    outer-shadow: 0px 3px 10px #393738;
     space: 1s;
     width: 500px;
     height: 400px;
-    background-color: white;
+    background-color: #211e1f;
     border-radius: 10px;
 }
 
@@ -67,7 +71,7 @@ connect_view .content {
 .indicator {
     width: 50%;
     height: 5px;
-    background-color: #005a9e;
+    background-color: #f54e47;
     left: 0%;
     transition: left 0.1 0.0;
 }
@@ -79,4 +83,5 @@ connect_view .content {
 
 button.start {
     space: 1s;
+    right: auto;
 }

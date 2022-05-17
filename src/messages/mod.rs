@@ -26,6 +26,7 @@ pub trait MessageTrait<'a>: Sized + Deserialize<'a> + Serialize {
 pub struct UserMsg {
     pub username: String,
     pub message: String,
+    pub color: String,
 }
 
 impl MessageTrait<'_> for UserMsg {}
