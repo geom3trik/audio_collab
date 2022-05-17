@@ -38,14 +38,17 @@ fn main() {
         }
         .build(cx);
 
-        Binding::new(cx, AppData::show_login, |cx, show_login| {
-            if show_login.get(cx) {
-                ConnectUI::new(cx);
-            } else {
-                ChatUI::new(cx);
-            }
-        });
+        VStack::new(cx, |cx|{
+            Binding::new(cx, AppData::show_login, |cx, show_login| {
+                if show_login.get(cx) {
+                    ConnectUI::new(cx);
+                } else {
+                    ChatUI::new(cx);
+                }
+            });
+        })
+        .class("page");
     })
-    // .always_on_top(true)
+    //.always_on_top(true)
     .run();
 }

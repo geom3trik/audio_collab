@@ -9,13 +9,17 @@
     color: #bdb5b5;
 }
 
+.page {
+    background-color: #161314;
+}
+
 connect_view {
-    outer-shadow: 0px 3px 10px #393738;
+    outer-shadow: 0px 3px 10px #00000080;
     space: 1s;
     width: 500px;
     height: 400px;
-    background-color: #211e1f;
-    border-radius: 10px;
+    background-color: #2d2b2b;
+    border-radius: 4px;
 }
 
 connect_view .tabs {
@@ -40,6 +44,10 @@ connect_view .content {
 
 .input_row textbox {
     width: 1s;
+}
+
+.input_row>vstack {
+    row-between: 5px;
 }
 
 .ip_input {
@@ -82,6 +90,48 @@ connect_view .content {
 }
 
 button.start {
+    top: 1s;
+    width: 1s;
+    bottom: auto;
+}
+
+button label {
     space: 1s;
-    right: auto;
+}
+
+button.accent {
+    background-color: #f54e47;
+    outer-shadow: 0 1 0 #790d0a;
+}
+
+button.accent:over {
+    background-color: #ee5550;
+}
+
+textbox {
+    background-color: #211e1f;
+    border-width: 0px;
+}
+
+textbox:over {
+    background-color: #211e1f;
+}
+
+.color_picker {
+    top: 1s;
+    cursor: hand;
+}
+
+.color_picker .picker {
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+}
+
+.color_picker popup {
+    background-color: #434141;
+    outer-shadow: 0px 3px 10px #00000080;
+    border-radius: 4px;
+    top: 120%;
+    size: auto;
 }
