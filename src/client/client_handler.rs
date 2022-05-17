@@ -6,7 +6,7 @@ use std::{
 
 pub use vizia::prelude::*;
 
-use crate::{AppEvent, UserMsg, MessageTrait};
+use crate::{AppEvent, MessageTrait, UserMsg};
 
 pub struct ClientHandler {
     pub username: String,
@@ -31,7 +31,6 @@ impl ClientHandler {
             let mut buff = vec![0; 512];
             match client.read(&mut buff) {
                 Ok(length) => {
-
                     if length == 0 {
                         println!("Message is empty somehow");
                         continue;

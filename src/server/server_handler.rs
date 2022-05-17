@@ -10,7 +10,7 @@ use std::{
 
 pub use vizia::prelude::*;
 
-use crate::{AppEvent, UserMsg, MessageTrait};
+use crate::{AppEvent, MessageTrait, UserMsg};
 
 struct User {
     pub name: String,
@@ -71,7 +71,6 @@ impl ServerHandler {
                                     let message = buff.into_iter().take_while(|&x| x != 0).collect::<Vec<_>>();
                                     let message = String::from_utf8(message).unwrap();
                                     let msg = UserMsg::from_msg(&message);
-                                        
                                     if let Some(user) = users_ref.lock().unwrap().get(&addr) {
                                         println!("{}, {:?}", addr, msg);
                                         cx.emit(AppEvent::AppendMessage(msg.clone()))
@@ -117,7 +116,7 @@ impl ServerHandler {
             }
         });
 
-        ServerHandler { 
+        ServerHandler {
             sender: stx.clone(),
         }
     }

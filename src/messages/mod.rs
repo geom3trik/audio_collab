@@ -1,6 +1,5 @@
-use vizia::prelude::*;
 use serde::{Deserialize, Serialize};
-
+use vizia::prelude::*;
 
 pub trait MessageTrait<'a>: Sized + Deserialize<'a> + Serialize {
     fn from_msg(msg: &'a str) -> Self {
@@ -20,7 +19,6 @@ pub trait MessageTrait<'a>: Sized + Deserialize<'a> + Serialize {
         self.to_msg().into_bytes()
     }
 }
-
 
 #[derive(Deserialize, Serialize, Debug, Clone, Data, Lens)]
 pub struct UserMsg {

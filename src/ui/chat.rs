@@ -20,7 +20,7 @@ impl ChatUI {
 
             // List of messages
             List::new(cx, AppData::messages, |cx, _, item| {
-                HStack::new(cx, |cx|{
+                HStack::new(cx, |cx| {
                     avatar(cx, item);
                     Label::new(cx, item.then(UserMsg::message));
                 })
@@ -38,13 +38,17 @@ impl ChatUI {
 
 impl View for ChatUI {}
 
-
 pub fn avatar<L: Lens<Target = UserMsg>>(cx: &mut Context, user: L) -> Handle<impl View> {
-    Label::new(cx, user.clone().then(UserMsg::username).map(|name| String::from(name.chars().nth(0).unwrap())))
-        .size(Pixels(32.0))
-        .border_radius(Percentage(50.0))
-        .background_color(user.then(UserMsg::color.map(|col| Color::from(col.clone()))))
-        .child_space(Stretch(1.0))
-        .font_size(24.0)
-        .color(Color::white())
+    Label::new(
+        cx,
+        user.clone()
+            .then(UserMsg::username)
+            .map(|name| String::from(name.chars().nth(0).unwrap())),
+    )
+    .size(Pixels(32.0))
+    .border_radius(Percentage(50.0))
+    .background_color(user.then(UserMsg::color.map(|col| Color::from(col.clone()))))
+    .child_space(Stretch(1.0))
+    .font_size(24.0)
+    .color(Color::white())
 }

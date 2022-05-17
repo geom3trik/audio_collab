@@ -117,6 +117,11 @@ textbox:over {
     background-color: #211e1f;
 }
 
+textbox.invalid {
+    border-width: 1px;
+    border-color: red;
+}
+
 .color_picker {
     top: 1s;
     cursor: hand;
@@ -130,8 +135,9 @@ textbox:over {
 
 .color_picker popup {
     background-color: #434141;
-    outer-shadow: 0px 3px 10px #00000080;
+    outer-shadow: 0px 3px 10px #00000040;
     border-radius: 4px;
     top: 120%;
-    size: auto;
+    width: auto;
+    height: auto;
 }

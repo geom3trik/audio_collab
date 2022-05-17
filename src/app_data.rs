@@ -67,11 +67,14 @@ impl Model for AppData {
                 self.show_login = false;
                 println!("Connect to server");
                 let address = self.host_ip.clone() + ":" + &self.host_port;
-                self.client = Some(ClientHandler::new(cx, address, self.client_username.clone()));
+                self.client = Some(ClientHandler::new(
+                    cx,
+                    address,
+                    self.client_username.clone(),
+                ));
             }
 
             AppEvent::SendMessage(msg) => {
-
                 let msg = UserMsg {
                     username: self.client_username.clone(),
                     message: msg.clone(),
@@ -107,7 +110,6 @@ impl Model for AppData {
         });
     }
 }
-
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Data)]
 pub enum ClientOrHost {

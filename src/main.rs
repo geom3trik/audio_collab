@@ -29,16 +29,16 @@ fn main() {
             show_color_picker: false,
             host_ip: String::from("127.0.0.1"),
             host_port: String::from("7878"),
-            client_username: String::from("TODO"),
+            client_username: String::from("Default"),
             client_color: Color::from("#F54E47"),
-            server_password: String::from("TODO"),
+            server_password: String::new(),
             messages: Vec::new(),
             client: None,
             server: None,
         }
         .build(cx);
 
-        VStack::new(cx, |cx|{
+        VStack::new(cx, |cx| {
             Binding::new(cx, AppData::show_login, |cx, show_login| {
                 if show_login.get(cx) {
                     ConnectUI::new(cx);
