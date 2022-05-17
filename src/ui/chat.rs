@@ -25,6 +25,7 @@ impl ChatUI {
                     avatar(cx, item);
                     Label::new(cx, item.then(UserMsg::message));
                 })
+                .col_between(Pixels(10.0))
                 .height(Auto)
                 .child_top(Stretch(1.0))
                 .child_bottom(Stretch(1.0));
