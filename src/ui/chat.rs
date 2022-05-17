@@ -1,4 +1,3 @@
-use rand::Rng;
 use vizia::prelude::*;
 
 use crate::{AppData, AppEvent, UserMsg};
@@ -29,7 +28,8 @@ impl ChatUI {
                 .height(Auto)
                 .child_top(Stretch(1.0))
                 .child_bottom(Stretch(1.0));
-            });
+            })
+            .row_between(Pixels(10.0));
         })
         .child_space(Pixels(20.0))
         .row_between(Pixels(20.0))
@@ -40,11 +40,6 @@ impl View for ChatUI {}
 
 
 pub fn avatar<L: Lens<Target = UserMsg>>(cx: &mut Context, user: L) -> Handle<impl View> {
-    // let mut rand = rand::thread_rng();
-    // let r: u8 = rand.gen();
-    // let g: u8 = rand.gen();
-    // let b: u8 = rand.gen();
-    
     Label::new(cx, user.clone().then(UserMsg::username).map(|name| String::from(name.chars().nth(0).unwrap())))
         .size(Pixels(32.0))
         .border_radius(Percentage(50.0))
