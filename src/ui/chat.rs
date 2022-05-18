@@ -15,7 +15,12 @@ impl ChatUI {
         .build(cx, |cx| {
             // Message box
             Textbox::new(cx, ChatUI::current_message)
-                .on_submit(|cx, text| cx.emit(AppEvent::SendMessage(text)))
+                .on_submit(|cx, text| {
+                    if !text.is_empty() {
+                        cx.emit(AppEvent::SendMessage(text));
+                        cx.emit(TextEvent::StartEdit);
+                    }
+                })
                 .width(Stretch(1.0));
 
             // List of messages
