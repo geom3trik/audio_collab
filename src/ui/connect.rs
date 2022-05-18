@@ -1,4 +1,4 @@
-use std::net::{Ipv4Addr, SocketAddr};
+use std::net::Ipv4Addr;
 
 use crate::{AppData, AppEvent, ClientOrHost};
 use vizia::prelude::*;
@@ -76,7 +76,7 @@ impl ConnectUI {
                                     Label::new(cx, "Username:");
                                     InputBox::new(
                                         cx,
-                                        AppData::client_username,
+                                        AppData::client_metadata.map(|m| m.username.clone()),
                                         |cx, text| {
                                             if text.len() != 0 {
                                                 cx.emit(InputBoxEvent::Valid);
@@ -121,7 +121,7 @@ impl ConnectUI {
                                     Label::new(cx, "Username:");
                                     InputBox::new(
                                         cx,
-                                        AppData::client_username,
+                                        AppData::client_metadata.map(|m| m.username.clone()),
                                         |cx, text| {
                                             if text.len() != 0 {
                                                 cx.emit(InputBoxEvent::Valid);
@@ -178,7 +178,7 @@ impl View for ConnectUI {
 fn color_picker(cx: &mut Context) {
     VStack::new(cx, |cx| {
         Element::new(cx)
-            .background_color(AppData::client_color)
+            .background_color(AppData::client_metadata.map(|m| Color::from(m.color.clone())))
             .class("picker")
             .cursor(CursorIcon::Hand)
             .on_press(|cx| cx.emit(AppEvent::OpenColorPicker));
@@ -254,7 +254,7 @@ impl InputBox {
 }
 
 impl View for InputBox {
-    fn event(&mut self, cx: &mut Context, event: &mut Event) {
+    fn event(&mut self, _cx: &mut Context, event: &mut Event) {
         event.map(|input_box_event, _| match input_box_event {
             InputBoxEvent::Valid => {
                 self.is_invalid = false;
