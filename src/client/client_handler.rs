@@ -1,63 +1,54 @@
 use std::{
-    io::{ErrorKind, Read, Write},
     net::TcpStream,
     sync::mpsc::{self, Sender, TryRecvError},
 };
 
 pub use vizia::prelude::*;
 
-use crate::{AppEvent, MessageTrait, UserMsg};
+use crate::{read_from_stream, write_to_stream, AppEvent, Msg, UserMetadata, UserMsg};
 
 pub struct ClientHandler {
-    pub username: String,
+    pub metadata: UserMetadata,
     pub sender: Sender<UserMsg>,
 }
 
 impl ClientHandler {
-    pub fn new(cx: &mut Context, addr: String, username: String) -> ClientHandler {
+    pub fn new(cx: &mut Context, addr: String, metadata: UserMetadata) -> ClientHandler {
         let mut client = TcpStream::connect(addr).expect("Failed to connect");
         client.set_nonblocking(true).unwrap();
 
         // Send metadata
-        let mut buff = username.clone().into_bytes();
-        buff.resize(512, 0);
-        client
-            .write_all(&buff)
-            .expect("Failed to send message to server");
+        write_to_stream(&mut client, &Msg::Metadata(metadata.clone()));
 
         let (tx, rx) = mpsc::channel::<UserMsg>();
 
         cx.spawn(move |cx| loop {
-            let mut buff = vec![0; 512];
-            match client.read(&mut buff) {
-                Ok(length) => {
-                    if length == 0 {
-                        println!("Message is empty somehow");
-                        continue;
+            match read_from_stream(&mut client) {
+                Ok(msg) => {
+                    // Handle messages
+                    match msg {
+                        Msg::Metadata(_meta) => println!("Thanks, bud."),
+                        Msg::UserMsg(usermsg) => {
+                            cx.emit(AppEvent::AppendMessage(usermsg.clone()))
+                                .expect("Failed to send message back to app");
+                        }
                     }
-
-                    let message = buff.into_iter().take_while(|&x| x != 0).collect::<Vec<_>>();
-                    let message = String::from_utf8(message).unwrap();
-                    let msg = UserMsg::from_msg(&message);
-
-                    println!("Received msg: {:?}", msg);
-
-                    cx.emit(AppEvent::AppendMessage(msg))
-                        .expect("Failed to send message to app");
                 }
-
-                Err(ref err) if err.kind() == ErrorKind::WouldBlock => (),
-                Err(_) => {
-                    println!("Connection lost to server");
-                    break;
-                }
+                Err(err) => match err {
+                    crate::ReadStreamError::IOError(_err) => {
+                        // eprintln!("IO Error while trying to read a new message")
+                    }
+                    crate::ReadStreamError::BuffSize0 => {
+                        eprintln!("Next message buffer size was 0");
+                        // TODO: Close connection
+                        break;
+                    }
+                },
             }
 
             match rx.try_recv() {
                 Ok(msg) => {
-                    client
-                        .write_all(&msg.to_bytes())
-                        .expect("Failed to send message to server");
+                    write_to_stream(&mut client, &Msg::UserMsg(msg));
                 }
 
                 Err(TryRecvError::Empty) => (),
@@ -69,7 +60,7 @@ impl ClientHandler {
         });
 
         ClientHandler {
-            username,
+            metadata,
             sender: tx.clone(),
         }
     }

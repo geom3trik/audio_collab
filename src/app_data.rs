@@ -2,7 +2,7 @@ use vizia::prelude::*;
 
 use crate::client_handler::ClientHandler;
 use crate::server_handler::ServerHandler;
-use crate::{AppEvent, UserMsg};
+use crate::{AppEvent, UserMetadata, UserMsg};
 
 #[derive(Lens)]
 pub struct AppData {
@@ -18,8 +18,7 @@ pub struct AppData {
     // The host port. Used by the client to connect to the host.
     pub host_port: String,
 
-    pub client_username: String,
-    pub client_color: Color,
+    pub client_metadata: UserMetadata,
 
     pub server_password: String,
 
@@ -50,7 +49,7 @@ impl Model for AppData {
             }
 
             AppEvent::SetClientUsername(username) => {
-                self.client_username = username.clone();
+                self.client_metadata.username = username.clone();
             }
 
             AppEvent::SetServerPassword(password) => {
@@ -60,7 +59,9 @@ impl Model for AppData {
             AppEvent::StartServer => {
                 self.show_login = false;
                 println!("Start the server connection!");
-                self.server = Some(ServerHandler::new(cx, self.client_username.clone()));
+                self.server = Some(ServerHandler::new());
+
+                self.server.as_ref().unwrap().start(cx);
             }
 
             AppEvent::Connect => {
@@ -70,15 +71,14 @@ impl Model for AppData {
                 self.client = Some(ClientHandler::new(
                     cx,
                     address,
-                    self.client_username.clone(),
+                    self.client_metadata.clone(),
                 ));
             }
 
             AppEvent::SendMessage(msg) => {
                 let msg = UserMsg {
-                    username: self.client_username.clone(),
+                    user_metadata: self.client_metadata.clone(),
                     message: msg.clone(),
-                    color: self.client_color.to_string(),
                 };
 
                 self.messages.push(msg.clone());
@@ -104,7 +104,7 @@ impl Model for AppData {
             }
 
             AppEvent::ChooseColor(color) => {
-                self.client_color = color.clone();
+                self.client_metadata.color = color.to_string();
                 self.show_color_picker = false;
             }
         });

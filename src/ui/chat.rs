@@ -47,12 +47,12 @@ pub fn avatar<L: Lens<Target = UserMsg>>(cx: &mut Context, user: L) -> Handle<im
     Label::new(
         cx,
         user.clone()
-            .then(UserMsg::username)
+            .then(UserMsg::user_metadata.map(|m| m.username.clone()))
             .map(|name| String::from(name.chars().nth(0).unwrap())),
     )
     .size(Pixels(32.0))
     .border_radius(Percentage(50.0))
-    .background_color(user.then(UserMsg::color.map(|col| Color::from(col.clone()))))
+    .background_color(user.then(UserMsg::user_metadata.map(|m| Color::from(m.color.clone()))))
     .child_space(Stretch(1.0))
     .font_size(24.0)
     .color(Color::white())
