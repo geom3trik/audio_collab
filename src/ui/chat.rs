@@ -18,7 +18,7 @@ impl ChatUI {
                 .on_submit(|cx, text| {
                     if !text.is_empty() {
                         cx.emit(AppEvent::SendMessage(text));
-                        cx.emit(TextEvent::StartEdit);
+                        // cx.emit(TextEvent::StartEdit);
                     }
                 })
                 .width(Stretch(1.0));

@@ -25,10 +25,8 @@ pub struct User {
 pub struct ServerHandler {
     pub server: TcpListener,
     pub users: Users,
-    pub sender: Arc<Mutex<Sender<Msg>>>,
-
-    pub stx: Arc<Mutex<Sender<Msg>>>,
-    pub srx: Arc<Mutex<Receiver<Msg>>>,
+    pub stx: Sender<Msg>,
+    pub srx: Option<Receiver<Msg>>,
 }
 
 impl ServerHandler {
@@ -41,17 +39,15 @@ impl ServerHandler {
         ServerHandler {
             server,
             users: Arc::new(Mutex::new(HashMap::new())),
-            sender: Arc::new(Mutex::new(stx.clone())),
-
-            stx: Arc::new(Mutex::new(stx)),
-            srx: Arc::new(Mutex::new(srx)),
+            stx,
+            srx: Some(srx),
         }
     }
 
-    pub fn start(&self, cx: &mut Context) {
+    pub fn start(&mut self, cx: &mut Context) {
         let server = self.server.try_clone().unwrap();
         let users = self.users.clone();
-        let srx = self.srx.clone();
+        let srx = self.srx.take().unwrap();
 
         cx.spawn(move |cx| {
             //let mut clients = vec![];
@@ -80,6 +76,8 @@ impl ServerHandler {
                                 ServerThread::spawn(cx, socket, user.clone(), tx.clone()),
                             ),
                         );
+                    } else {
+                        eprintln!("Something wrong happened here.");
                     }
                 }
 
@@ -89,8 +87,13 @@ impl ServerHandler {
                 }
 
                 // Send messages from server to clients
-                if let Ok(msg) = srx.lock().unwrap().try_recv() {
-                    Self::direct_msg(msg, users.clone());
+                match srx.try_recv() {
+                    Ok(msg) => {
+                        Self::direct_msg(msg, users.clone());
+                    }
+                    Err(err) => {
+                        eprintln!("Error while direct messaging: {:?}", err)
+                    }
                 }
 
                 std::thread::sleep(std::time::Duration::from_millis(100));
@@ -128,9 +131,7 @@ impl ServerHandler {
 
     pub fn send(&mut self, msg: &UserMsg) {
         println!("Send message from server: {:?}", msg);
-        self.sender
-            .lock()
-            .unwrap()
+        self.stx
             .send(Msg::UserMsg(msg.clone()))
             .expect("Failed to send message");
     }

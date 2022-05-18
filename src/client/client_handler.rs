@@ -46,8 +46,8 @@ impl ClientHandler {
                     }
                 }
                 Err(err) => match err {
-                    crate::ReadStreamError::IOError(_err) => {
-                        // eprintln!("IO Error while trying to read a new message")
+                    crate::ReadStreamError::IOError(err) => {
+                        eprintln!("IO Error while trying to read a new message {:?}", err)
                     }
                     crate::ReadStreamError::BuffSize0 => {
                         eprintln!("Next message buffer size was 0");

@@ -62,7 +62,7 @@ impl Model for AppData {
                 println!("Start the server connection!");
                 self.server = Some(ServerHandler::new());
 
-                self.server.as_ref().unwrap().start(cx);
+                self.server.as_mut().unwrap().start(cx);
             }
 
             AppEvent::Connect => {
