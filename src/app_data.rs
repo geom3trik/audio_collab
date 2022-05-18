@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use vizia::prelude::*;
 
 use crate::client_handler::ClientHandler;
@@ -19,7 +21,7 @@ pub struct AppData {
     pub host_port: String,
 
     pub client_metadata: UserMetadata,
-    pub client_mouse_position: (f32, f32),
+    pub clients: Vec<UserMetadata>,
 
     pub server_password: String,
 
@@ -109,7 +111,9 @@ impl Model for AppData {
                 self.show_color_picker = false;
             }
 
-            AppEvent::ChangeCursorPosition(pos) => self.client_mouse_position = *pos,
+            AppEvent::UpdateUsersMetadata(v) => {
+                self.clients = v.clone();
+            }
         });
     }
 }

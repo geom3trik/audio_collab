@@ -11,7 +11,8 @@ use std::{
 pub use vizia::prelude::*;
 
 use crate::{
-    read_from_stream, server_thread::ServerThread, MessageTrait, Msg, UserMetadata, UserMsg,
+    read_from_stream, server_thread::ServerThread, AppEvent, MessageTrait, Msg, UserMetadata,
+    UserMsg,
 };
 
 pub type Users = Arc<Mutex<HashMap<SocketAddr, (Arc<Mutex<User>>, ServerThread)>>>;
@@ -46,6 +47,8 @@ impl ServerHandler {
 
     pub fn start(&mut self, cx: &mut Context) {
         let server = self.server.try_clone().unwrap();
+        server.set_nonblocking(true).unwrap();
+
         let users = self.users.clone();
         let srx = self.srx.take().unwrap();
 
@@ -54,6 +57,16 @@ impl ServerHandler {
             let (tx, rx) = mpsc::channel::<(SocketAddr, Msg)>();
 
             loop {
+                let users_metadata = users
+                    .lock()
+                    .unwrap()
+                    .iter()
+                    .map(|(_, (user, _))| user.lock().unwrap().metadata.clone())
+                    .collect::<Vec<_>>();
+
+                cx.emit(AppEvent::UpdateUsersMetadata(users_metadata))
+                    .expect("Failed to send message back to app");
+
                 // New client connected
                 if let Ok((mut socket, addr)) = server.accept() {
                     println!("Client {} connected", addr);
@@ -91,12 +104,12 @@ impl ServerHandler {
                     Ok(msg) => {
                         Self::direct_msg(msg, users.clone());
                     }
-                    Err(err) => {
-                        eprintln!("Error while direct messaging: {:?}", err)
+                    Err(_err) => {
+                        //eprintln!("Error while direct messaging: {:?}", err)
                     }
                 }
 
-                std::thread::sleep(std::time::Duration::from_millis(100));
+                std::thread::sleep(std::time::Duration::from_millis(20));
             }
         });
     }

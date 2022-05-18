@@ -6,7 +6,11 @@
 } */
 
 * {
-    color: #bdb5b5;
+    color: #b8b8b8;
+}
+
+label {
+    color: #888888;
 }
 
 .page {
@@ -102,6 +106,8 @@ button label {
 button.accent {
     background-color: #f54e47;
     outer-shadow: 0 1 0 #790d0a;
+    font: "semi-bold";
+    border-radius: 2px;
 }
 
 button.accent:over {
@@ -111,6 +117,7 @@ button.accent:over {
 textbox {
     background-color: #211e1f;
     border-width: 0px;
+    border-radius: 2px;
 }
 
 textbox:over {
@@ -140,4 +147,8 @@ textbox.invalid {
     top: 120%;
     width: auto;
     height: auto;
+}
+
+label.username {
+    font-size: 20;
 }

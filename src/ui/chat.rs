@@ -1,6 +1,6 @@
 use vizia::prelude::*;
 
-use crate::{AppData, AppEvent, UserMsg};
+use crate::{AppData, AppEvent, ClientOrHost, UserMetadata, UserMsg};
 
 #[derive(Lens)]
 pub struct ChatUI {
@@ -13,6 +13,22 @@ impl ChatUI {
             current_message: String::new(),
         }
         .build(cx, |cx| {
+            Binding::new(cx, AppData::client_or_host, |cx, client_or_host| {
+                let client_or_host = client_or_host.get(cx);
+                Label::new(
+                    cx,
+                    AppData::client_metadata
+                        .then(UserMetadata::username)
+                        .map(move |username| match client_or_host {
+                            ClientOrHost::Host => {
+                                format!("{} (Server)", username)
+                            }
+
+                            ClientOrHost::Client => username.clone(),
+                        }),
+                )
+                .class("username");
+            });
             // Message box
             Textbox::new(cx, ChatUI::current_message)
                 .on_submit(|cx, text| {

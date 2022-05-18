@@ -1,6 +1,6 @@
 use vizia::prelude::*;
 
-use crate::{ClientOrHost, UserMsg};
+use crate::{ClientOrHost, UserMetadata, UserMsg};
 
 pub enum AppEvent {
     ToggleLoginScreen,
@@ -29,5 +29,5 @@ pub enum AppEvent {
     CloseColorPicker,
     ChooseColor(Color),
 
-    ChangeCursorPosition((f32, f32)),
+    UpdateUsersMetadata(Vec<UserMetadata>),
 }

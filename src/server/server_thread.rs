@@ -1,4 +1,5 @@
 use std::{
+    io::ErrorKind,
     net::{SocketAddr, TcpStream},
     sync::{mpsc::Sender, Arc, Mutex},
 };
@@ -28,7 +29,7 @@ impl ServerThread {
             loop {
                 match read_from_mut_stream(stream_ref.clone()) {
                     Ok(msg) => {
-                        let usr = user_ref.lock().unwrap();
+                        let mut usr = user_ref.lock().unwrap();
 
                         // Handle messages
                         match msg {
@@ -42,25 +43,30 @@ impl ServerThread {
                             }
                             Msg::UserCursor(cursor) => {
                                 println!("Cursor updated from client: {:?}", cursor);
-                                cx.emit(AppEvent::ChangeCursorPosition(cursor.cursor_position))
-                                    .expect("Failed to send message back to app");
+                                usr.metadata.cursor = cursor;
                                 tx.send((usr.addr, Msg::UserCursor(cursor.clone())))
                                     .expect("Failed to send message to rx");
                             }
                         }
                     }
                     Err(err) => match err {
+                        crate::ReadStreamError::IOError(ref err)
+                            if err.kind() == ErrorKind::WouldBlock =>
+                        {
+                            ()
+                        }
+
                         crate::ReadStreamError::IOError(_err) => {
                             // eprintln!("IO Error while trying to read a new message")
                         }
                         crate::ReadStreamError::BuffSize0 => {
                             eprintln!("Next message buffer size was 0");
                             // TODO: Close connection
-                            break;
+                            // break;
                         }
                     },
                 }
-                std::thread::sleep(std::time::Duration::from_millis(100));
+                std::thread::sleep(std::time::Duration::from_millis(20));
             }
         });
 

@@ -35,25 +35,20 @@ pub trait MessageTrait<'a>: Sized + Deserialize<'a> + Serialize {
 pub enum Msg {
     Metadata(UserMetadata),
     UserMsg(UserMsg),
-    UserCursor(UserCursor),
+    UserCursor((f32, f32)),
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone, Data, Lens)]
 pub struct UserMetadata {
     pub username: String,
     pub color: String,
+    pub cursor: (f32, f32),
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone, Data, Lens)]
 pub struct UserMsg {
     pub user_metadata: UserMetadata,
     pub message: String,
-}
-
-#[derive(Deserialize, Serialize, Debug, Clone, Data, Lens)]
-pub struct UserCursor {
-    pub user_metadata: UserMetadata,
-    pub cursor_position: (f32, f32),
 }
 
 impl MessageTrait<'_> for Msg {}

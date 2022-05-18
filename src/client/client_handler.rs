@@ -5,7 +5,7 @@ use std::{
 
 pub use vizia::prelude::*;
 
-use crate::{read_from_stream, write_to_stream, AppEvent, Msg, UserCursor, UserMetadata, UserMsg};
+use crate::{read_from_stream, write_to_stream, AppEvent, Msg, UserMetadata, UserMsg};
 
 pub struct ClientHandler {
     pub metadata: UserMetadata,
@@ -21,15 +21,11 @@ impl ClientHandler {
         write_to_stream(&mut client, &Msg::Metadata(metadata.clone()));
 
         let (tx, rx) = mpsc::channel::<UserMsg>();
-
+        let metadata2 = metadata.clone();
         cx.spawn(move |cx| loop {
-            // write_to_stream(
-            //     &mut client,
-            //     &Msg::UserCursor(UserCursor {
-            //         user_metadata: metadata.clone(),
-            //         cursor_position: cx.current,
-            //     }),
-            // );
+            let mousex = *cx.cursorx.lock().unwrap();
+            let mousey = *cx.cursory.lock().unwrap();
+            write_to_stream(&mut client, &Msg::UserCursor((mousex, mousey)));
 
             match read_from_stream(&mut client) {
                 Ok(msg) => {
@@ -40,14 +36,15 @@ impl ClientHandler {
                             cx.emit(AppEvent::AppendMessage(usermsg.clone()))
                                 .expect("Failed to send message back to app");
                         }
-                        Msg::UserCursor(cursormsg) => cx
-                            .emit(AppEvent::ChangeCursorPosition(cursormsg.cursor_position))
-                            .expect("Failed to send message back to app"),
+                        // Msg::UserCursor(cursormsg) => cx
+                        //     .emit(AppEvent::ChangeCursorPosition(cursormsg.cursor_position))
+                        //     .expect("Failed to send message back to app"),
+                        _ => {}
                     }
                 }
                 Err(err) => match err {
                     crate::ReadStreamError::IOError(err) => {
-                        eprintln!("IO Error while trying to read a new message {:?}", err)
+                        // eprintln!("IO Error while trying to read a new message {:?}", err)
                     }
                     crate::ReadStreamError::BuffSize0 => {
                         eprintln!("Next message buffer size was 0");
@@ -67,7 +64,7 @@ impl ClientHandler {
                 Err(TryRecvError::Disconnected) => break,
             }
 
-            std::thread::sleep(std::time::Duration::from_millis(100));
+            std::thread::sleep(std::time::Duration::from_millis(20));
         });
 
         ClientHandler {
