@@ -5,7 +5,7 @@ use std::{
 
 pub use vizia::prelude::*;
 
-use crate::{read_from_stream, write_to_stream, AppEvent, Msg, UserMetadata, UserMsg};
+use crate::{read_from_stream, write_to_stream, AppEvent, Msg, UserCursor, UserMetadata, UserMsg};
 
 pub struct ClientHandler {
     pub metadata: UserMetadata,
@@ -23,6 +23,14 @@ impl ClientHandler {
         let (tx, rx) = mpsc::channel::<UserMsg>();
 
         cx.spawn(move |cx| loop {
+            // write_to_stream(
+            //     &mut client,
+            //     &Msg::UserCursor(UserCursor {
+            //         user_metadata: metadata.clone(),
+            //         cursor_position: cx.current,
+            //     }),
+            // );
+
             match read_from_stream(&mut client) {
                 Ok(msg) => {
                     // Handle messages
@@ -32,6 +40,9 @@ impl ClientHandler {
                             cx.emit(AppEvent::AppendMessage(usermsg.clone()))
                                 .expect("Failed to send message back to app");
                         }
+                        Msg::UserCursor(cursormsg) => cx
+                            .emit(AppEvent::ChangeCursorPosition(cursormsg.cursor_position))
+                            .expect("Failed to send message back to app"),
                     }
                 }
                 Err(err) => match err {

@@ -28,4 +28,6 @@ pub enum AppEvent {
     OpenColorPicker,
     CloseColorPicker,
     ChooseColor(Color),
+
+    ChangeCursorPosition((f32, f32)),
 }

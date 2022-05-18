@@ -19,6 +19,7 @@ pub struct AppData {
     pub host_port: String,
 
     pub client_metadata: UserMetadata,
+    pub client_mouse_position: (f32, f32),
 
     pub server_password: String,
 
@@ -107,6 +108,8 @@ impl Model for AppData {
                 self.client_metadata.color = color.to_string();
                 self.show_color_picker = false;
             }
+
+            AppEvent::ChangeCursorPosition(pos) => self.client_mouse_position = *pos,
         });
     }
 }

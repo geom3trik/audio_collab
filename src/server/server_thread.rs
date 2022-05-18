@@ -40,6 +40,13 @@ impl ServerThread {
                                 tx.send((usr.addr, Msg::UserMsg(usermsg.clone())))
                                     .expect("Failed to send message to rx");
                             }
+                            Msg::UserCursor(cursor) => {
+                                println!("Cursor updated from client: {:?}", cursor);
+                                cx.emit(AppEvent::ChangeCursorPosition(cursor.cursor_position))
+                                    .expect("Failed to send message back to app");
+                                tx.send((usr.addr, Msg::UserCursor(cursor.clone())))
+                                    .expect("Failed to send message to rx");
+                            }
                         }
                     }
                     Err(err) => match err {

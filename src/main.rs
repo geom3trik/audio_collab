@@ -33,6 +33,7 @@ fn main() {
                 username: String::from("Default"),
                 color: String::from("F54E47"),
             },
+            client_mouse_position: (0.0f32, 0.0f32),
             server_password: String::new(),
             messages: Vec::new(),
             client: None,

@@ -17,11 +17,12 @@ pub trait MessageTrait<'a>: Sized + Deserialize<'a> + Serialize {
     }
 
     fn from_bytes(bytes: &'a [u8]) -> Self {
-        let message = bytes
-            .into_iter()
-            .map(|x| *x)
-            .take_while(|&x| x != 0)
-            .collect::<Vec<_>>();
+        // TODO: Fix the bytes problem
+        // let _message = bytes
+        //     .into_iter()
+        //     .map(|x| *x)
+        //     .take_while(|&x| x != 0)
+        //     .collect::<Vec<_>>();
         ron::de::from_bytes(bytes).unwrap()
     }
 
@@ -34,6 +35,7 @@ pub trait MessageTrait<'a>: Sized + Deserialize<'a> + Serialize {
 pub enum Msg {
     Metadata(UserMetadata),
     UserMsg(UserMsg),
+    UserCursor(UserCursor),
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone, Data, Lens)]
@@ -46,6 +48,12 @@ pub struct UserMetadata {
 pub struct UserMsg {
     pub user_metadata: UserMetadata,
     pub message: String,
+}
+
+#[derive(Deserialize, Serialize, Debug, Clone, Data, Lens)]
+pub struct UserCursor {
+    pub user_metadata: UserMetadata,
+    pub cursor_position: (f32, f32),
 }
 
 impl MessageTrait<'_> for Msg {}
