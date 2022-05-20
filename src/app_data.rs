@@ -62,7 +62,9 @@ impl Model for AppData {
                 println!("Start the server connection!");
                 self.server = Some(ServerHandler::new());
 
-                self.server.as_mut().unwrap().start(cx);
+                cx.spawn(|cx| {
+                    self.server.as_mut().unwrap().start(cx).await;
+                });
 
                 let address = format!("{}:{}", self.host_ip.clone(), self.host_port.clone());
                 self.client = Some(ClientHandler::connect(

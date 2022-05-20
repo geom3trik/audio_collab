@@ -45,18 +45,18 @@ impl ServerHandler {
         }
     }
 
-    pub async fn start(&mut self, cx: &mut Context) {
+    pub async fn start(&mut self, cx: ContextProxy) {
         let tcp_server = self.tcp_server.try_clone().unwrap();
         tcp_server.set_nonblocking(true).unwrap();
 
         let tcp_users = self.users.clone();
 
-        cx.spawn(move |cx| {
+        tokio::spawn(async move {
             //let mut clients = vec![];
             let (tx, rx) = mpsc::channel::<(SocketAddr, Msg)>();
 
             loop {
-                Self::update_cursors(cx, tcp_users.clone());
+                Self::update_cursors(cx.clone(), tcp_users.clone());
 
                 // New client connected
                 if let Ok((mut socket, addr)) = tcp_server.accept() {
@@ -79,7 +79,7 @@ impl ServerHandler {
                             (
                                 user.clone(),
                                 // While spawning it's client thread
-                                ServerThread::spawn(cx, socket, user.clone(), tx.clone()),
+                                ServerThread::spawn(cx.clone(), socket, user.clone(), tx.clone()),
                             ),
                         );
                     } else {
@@ -110,7 +110,7 @@ impl ServerHandler {
         }
     }
 
-    pub fn update_cursors(cx: &mut ContextProxy, users: Users) {
+    pub fn update_cursors(cx: ContextProxy, users: Users) {
         let users_metadata = users
             .lock()
             .unwrap()

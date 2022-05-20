@@ -19,7 +19,7 @@ pub struct ServerThread {
 
 impl ServerThread {
     pub fn spawn(
-        cx: &mut ContextProxy,
+        cx: ContextProxy,
         stream: TcpStream,
         user: Arc<Mutex<User>>,
         tx: Sender<(SocketAddr, Msg)>,
