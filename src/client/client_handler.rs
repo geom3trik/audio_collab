@@ -5,7 +5,10 @@ use std::{
 
 pub use vizia::prelude::*;
 
-use crate::{read_from_stream, write_to_stream, AppEvent, Msg, UserMetadata, UserMsg};
+use crate::{
+    interchange::{read_from_stream, write_to_stream, ReadStreamError},
+    AppEvent, Msg, UserCursor, UserMetadata, UserMsg,
+};
 
 pub struct ClientHandler {
     pub metadata: UserMetadata,
@@ -13,7 +16,8 @@ pub struct ClientHandler {
 }
 
 impl ClientHandler {
-    pub fn new(cx: &mut Context, addr: String, metadata: UserMetadata) -> ClientHandler {
+    pub fn connect(cx: &mut Context, addr: String, metadata: UserMetadata) -> ClientHandler {
+        println!("{}", addr);
         let mut client = TcpStream::connect(addr).expect("Failed to connect");
         client.set_nonblocking(true).unwrap();
 
@@ -25,7 +29,13 @@ impl ClientHandler {
         cx.spawn(move |cx| loop {
             let mousex = *cx.cursorx.lock().unwrap();
             let mousey = *cx.cursory.lock().unwrap();
-            write_to_stream(&mut client, &Msg::UserCursor((mousex, mousey)));
+            write_to_stream(
+                &mut client,
+                &Msg::UserCursor(UserCursor {
+                    user_metadata: metadata2.clone(),
+                    cursor: (mousex, mousey),
+                }),
+            );
 
             match read_from_stream(&mut client) {
                 Ok(msg) => {
@@ -43,10 +53,10 @@ impl ClientHandler {
                     }
                 }
                 Err(err) => match err {
-                    crate::ReadStreamError::IOError(err) => {
+                    ReadStreamError::IOError(err) => {
                         // eprintln!("IO Error while trying to read a new message {:?}", err)
                     }
-                    crate::ReadStreamError::BuffSize0 => {
+                    ReadStreamError::BuffSize0 => {
                         eprintln!("Next message buffer size was 0");
                         // TODO: Close connection
                         break;

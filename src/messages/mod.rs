@@ -1,11 +1,9 @@
-use std::{
-    io::{Read, Write},
-    net::TcpStream,
-    sync::{Arc, Mutex},
-};
+use std::net::SocketAddr;
 
 use serde::{Deserialize, Serialize};
 use vizia::prelude::*;
+
+pub mod interchange;
 
 pub trait MessageTrait<'a>: Sized + Deserialize<'a> + Serialize {
     fn from_msg(msg: &'a str) -> Self {
@@ -35,7 +33,8 @@ pub trait MessageTrait<'a>: Sized + Deserialize<'a> + Serialize {
 pub enum Msg {
     Metadata(UserMetadata),
     UserMsg(UserMsg),
-    UserCursor((f32, f32)),
+    UserCursor(UserCursor),
+    UsersCursors(UsersCursors),
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone, Data, Lens)]
@@ -51,50 +50,17 @@ pub struct UserMsg {
     pub message: String,
 }
 
+#[derive(Deserialize, Serialize, Debug, Clone, Data, Lens)]
+pub struct UserCursor {
+    pub user_metadata: UserMetadata,
+    pub cursor: (f32, f32),
+}
+
+#[derive(Deserialize, Serialize, Debug, Clone, Data, Lens)]
+pub struct UsersCursors {
+    pub timestamp: i64,
+    pub user_metadata: UserMetadata,
+    pub cursors: Vec<(SocketAddr, f32, f32)>,
+}
+
 impl MessageTrait<'_> for Msg {}
-
-pub fn read_from_stream(stream: &mut TcpStream) -> Result<Msg, ReadStreamError> {
-    let mut buff = [0; 512];
-    let size = stream.read(&mut buff)?;
-
-    if size == 0 {
-        return Err(ReadStreamError::BuffSize0);
-    }
-
-    Ok(Msg::from_bytes(
-        &buff.into_iter().take_while(|&x| x != 0).collect::<Vec<_>>(),
-    ))
-}
-
-pub fn read_from_mut_stream(stream: Arc<Mutex<TcpStream>>) -> Result<Msg, ReadStreamError> {
-    let mut buff = [0; 512];
-    let size = stream.lock().unwrap().read(&mut buff)?;
-
-    if size == 0 {
-        return Err(ReadStreamError::BuffSize0);
-    }
-
-    Ok(Msg::from_bytes(
-        &buff.into_iter().take_while(|&x| x != 0).collect::<Vec<_>>(),
-    ))
-}
-
-pub fn write_to_stream(stream: &mut TcpStream, msg: &Msg) {
-    let mut buff = msg.clone().to_bytes();
-    buff.resize(512, 0);
-    stream
-        .write_all(&buff)
-        .expect("Failed to send message to server");
-}
-
-#[derive(Debug)]
-pub enum ReadStreamError {
-    IOError(std::io::Error),
-    BuffSize0,
-}
-
-impl From<std::io::Error> for ReadStreamError {
-    fn from(err: std::io::Error) -> Self {
-        ReadStreamError::IOError(err)
-    }
-}

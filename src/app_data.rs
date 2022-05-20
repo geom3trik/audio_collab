@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use vizia::prelude::*;
 
 use crate::client_handler::ClientHandler;
@@ -65,13 +63,20 @@ impl Model for AppData {
                 self.server = Some(ServerHandler::new());
 
                 self.server.as_mut().unwrap().start(cx);
+
+                let address = format!("{}:{}", self.host_ip.clone(), self.host_port.clone());
+                self.client = Some(ClientHandler::connect(
+                    cx,
+                    address,
+                    self.client_metadata.clone(),
+                ));
             }
 
             AppEvent::Connect => {
                 self.show_login = false;
                 println!("Connect to server");
-                let address = self.host_ip.clone() + ":" + &self.host_port;
-                self.client = Some(ClientHandler::new(
+                let address = format!("{}:{}", self.host_ip.clone(), self.host_port.clone());
+                self.client = Some(ClientHandler::connect(
                     cx,
                     address,
                     self.client_metadata.clone(),
@@ -85,11 +90,7 @@ impl Model for AppData {
                 };
 
                 self.messages.push(msg.clone());
-                match self.client_or_host {
-                    ClientOrHost::Client => self.client.as_mut().unwrap().send(&msg),
-                    ClientOrHost::Host => self.server.as_mut().unwrap().send(&msg),
-                    // ClientOrHost::Host => self.server.send(message),
-                }
+                self.client.as_mut().unwrap().send(&msg);
                 println!("Send message: {:?}", msg);
             }
 

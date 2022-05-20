@@ -6,10 +6,14 @@ use std::{
 
 use vizia::context::ContextProxy;
 
-use crate::{read_from_mut_stream, server_handler::User, AppEvent, Msg};
+use crate::{
+    interchange::{read_from_stream, ReadStreamError},
+    server_handler::User,
+    AppEvent, Msg,
+};
 
 pub struct ServerThread {
-    pub stream: Arc<Mutex<TcpStream>>,
+    pub stream: TcpStream,
     pub user: Arc<Mutex<User>>,
 }
 
@@ -20,14 +24,13 @@ impl ServerThread {
         user: Arc<Mutex<User>>,
         tx: Sender<(SocketAddr, Msg)>,
     ) -> ServerThread {
-        let stream_ref = Arc::new(Mutex::new(stream));
         let user_ref = user.clone();
 
-        let stream_ref_2 = stream_ref.clone();
+        let mut stream_copy = stream.try_clone().unwrap();
 
         cx.spawn(move |cx| {
             loop {
-                match read_from_mut_stream(stream_ref.clone()) {
+                match read_from_stream(&mut stream_copy) {
                     Ok(msg) => {
                         let mut usr = user_ref.lock().unwrap();
 
@@ -43,23 +46,24 @@ impl ServerThread {
                             }
                             Msg::UserCursor(cursor) => {
                                 println!("Cursor updated from client: {:?}", cursor);
-                                usr.metadata.cursor = cursor;
+                                usr.metadata.cursor = cursor.cursor;
                                 tx.send((usr.addr, Msg::UserCursor(cursor.clone())))
                                     .expect("Failed to send message to rx");
                             }
+                            _ => (),
                         }
                     }
                     Err(err) => match err {
-                        crate::ReadStreamError::IOError(ref err)
+                        ReadStreamError::IOError(ref err)
                             if err.kind() == ErrorKind::WouldBlock =>
                         {
                             ()
                         }
 
-                        crate::ReadStreamError::IOError(_err) => {
+                        ReadStreamError::IOError(_err) => {
                             // eprintln!("IO Error while trying to read a new message")
                         }
-                        crate::ReadStreamError::BuffSize0 => {
+                        ReadStreamError::BuffSize0 => {
                             eprintln!("Next message buffer size was 0");
                             // TODO: Close connection
                             // break;
@@ -71,7 +75,7 @@ impl ServerThread {
         });
 
         ServerThread {
-            stream: stream_ref_2,
+            stream: stream,
             user,
         }
     }

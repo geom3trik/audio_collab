@@ -1,4 +1,4 @@
-use vizia::{image::Pixels, prelude::*};
+use vizia::prelude::*;
 
 pub mod ui;
 pub use ui::*;
@@ -18,14 +18,14 @@ pub use server::*;
 pub mod messages;
 pub use messages::*;
 
-static SUIT_Semi_Bold: &[u8] = include_bytes!("resources/SUIT-SemiBold.ttf");
+static SUIT_SEMIBOLD: &[u8] = include_bytes!("resources/SUIT-SemiBold.ttf");
 
 fn main() {
     Application::new(|cx| {
         cx.add_stylesheet("src/ui/connect_style.css")
             .expect("Failed to find stylesheet");
 
-        cx.add_font_mem("semi-bold", SUIT_Semi_Bold);
+        cx.add_font_mem("semi-bold", SUIT_SEMIBOLD);
 
         AppData {
             client_or_host: ClientOrHost::Client,
