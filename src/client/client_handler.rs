@@ -53,7 +53,7 @@ impl ClientHandler {
                     }
                 }
                 Err(err) => match err {
-                    ReadStreamError::IOError(err) => {
+                    ReadStreamError::IOError(_err) => {
                         // eprintln!("IO Error while trying to read a new message {:?}", err)
                     }
                     ReadStreamError::BuffSize0 => {
@@ -79,7 +79,7 @@ impl ClientHandler {
 
         ClientHandler {
             metadata,
-            sender: tx.clone(),
+            sender: tx,
         }
     }
 

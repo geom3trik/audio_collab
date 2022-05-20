@@ -55,10 +55,7 @@ impl ServerThread {
                     }
                     Err(err) => match err {
                         ReadStreamError::IOError(ref err)
-                            if err.kind() == ErrorKind::WouldBlock =>
-                        {
-                            ()
-                        }
+                            if err.kind() == ErrorKind::WouldBlock => {}
 
                         ReadStreamError::IOError(_err) => {
                             // eprintln!("IO Error while trying to read a new message")
@@ -74,9 +71,6 @@ impl ServerThread {
             }
         });
 
-        ServerThread {
-            stream: stream,
-            user,
-        }
+        ServerThread { stream, user }
     }
 }

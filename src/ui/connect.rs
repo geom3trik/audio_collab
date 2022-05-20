@@ -39,7 +39,7 @@ impl ConnectUI {
                                         cx,
                                         AppData::host_ip,
                                         |cx, text| {
-                                            if let Ok(_) = text.parse::<Ipv4Addr>() {
+                                            if text.parse::<Ipv4Addr>().is_ok() {
                                                 cx.emit(InputBoxEvent::Valid);
                                                 cx.emit(AppEvent::SetHostIP(text));
                                             } else {
@@ -57,7 +57,7 @@ impl ConnectUI {
                                         cx,
                                         AppData::host_port,
                                         |cx, text| {
-                                            if let Ok(_) = text.parse::<u16>() {
+                                            if text.parse::<u16>().is_ok() {
                                                 cx.emit(InputBoxEvent::Valid);
                                                 cx.emit(AppEvent::SetHostPort(text));
                                             } else {
@@ -78,7 +78,7 @@ impl ConnectUI {
                                         cx,
                                         AppData::client_metadata.map(|m| m.username.clone()),
                                         |cx, text| {
-                                            if text.len() != 0 {
+                                            if !text.is_empty() {
                                                 cx.emit(InputBoxEvent::Valid);
                                                 cx.emit(AppEvent::SetClientUsername(text));
                                             } else {
@@ -123,7 +123,7 @@ impl ConnectUI {
                                         cx,
                                         AppData::client_metadata.map(|m| m.username.clone()),
                                         |cx, text| {
-                                            if text.len() != 0 {
+                                            if !text.is_empty() {
                                                 cx.emit(InputBoxEvent::Valid);
                                                 cx.emit(AppEvent::SetClientUsername(text));
                                             } else {

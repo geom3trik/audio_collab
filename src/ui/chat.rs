@@ -64,7 +64,7 @@ pub fn avatar<L: Lens<Target = UserMsg>>(cx: &mut Context, user: L) -> Handle<im
         cx,
         user.clone()
             .then(UserMsg::user_metadata.map(|m| m.username.clone()))
-            .map(|name| String::from(name.chars().nth(0).unwrap())),
+            .map(|name| String::from(name.chars().next().unwrap())),
     )
     .size(Pixels(32.0))
     .border_radius(Percentage(50.0))

@@ -1,7 +1,7 @@
 use std::{
     collections::HashMap,
     io::Write,
-    net::{SocketAddr, TcpListener, TcpStream, UdpSocket},
+    net::{SocketAddr, TcpListener, TcpStream},
     sync::{
         mpsc::{self},
         Arc, Mutex,
@@ -12,7 +12,7 @@ pub use vizia::prelude::*;
 
 use crate::{
     interchange::read_from_stream, server_thread::ServerThread, AppEvent, MessageTrait, Msg,
-    UserMetadata, LOOP_AWAIT_MS, TCP_LISTENING_IP, UDP_SOCKET_IP,
+    UserMetadata, LOOP_AWAIT_MS, TCP_LISTENING_IP,
 };
 
 pub type Users = Arc<Mutex<HashMap<SocketAddr, (Arc<Mutex<User>>, ServerThread)>>>;
@@ -26,6 +26,12 @@ pub struct User {
 pub struct ServerHandler {
     pub tcp_server: TcpListener,
     pub users: Users,
+}
+
+impl Default for ServerHandler {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl ServerHandler {
@@ -62,7 +68,7 @@ impl ServerHandler {
                     {
                         println!("Client connected successfuly");
                         let user = Arc::new(Mutex::new(User {
-                            addr: addr.clone(),
+                            addr,
                             metadata: meta.clone(),
                             client: socket.try_clone().expect("Uh, fuck you I guess"),
                         }));
