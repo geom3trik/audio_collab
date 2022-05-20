@@ -45,7 +45,7 @@ impl ServerHandler {
         }
     }
 
-    pub fn start(&mut self, cx: &mut Context) {
+    pub async fn start(&mut self, cx: &mut Context) {
         let tcp_server = self.tcp_server.try_clone().unwrap();
         tcp_server.set_nonblocking(true).unwrap();
 

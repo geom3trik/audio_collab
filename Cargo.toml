@@ -8,4 +8,5 @@ edition = "2021"
 vizia = {git = "https://github.com/vizia/vizia", branch = "proxy-mouse"}
 # vizia = {path = "../vizia"}
 ron = "0.7"
-serde = { version = "1", features = ["derive"] }
+serde = { version = "1.0.137", features = ["derive"] }
+tokio = { version = "1.18.2", features = ["full"] }

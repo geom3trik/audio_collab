@@ -20,7 +20,8 @@ pub use messages::*;
 
 static SUIT_SEMIBOLD: &[u8] = include_bytes!("resources/SUIT-SemiBold.ttf");
 
-fn main() {
+#[tokio::main]
+async fn main() {
     Application::new(|cx| {
         cx.add_stylesheet("src/ui/connect_style.css")
             .expect("Failed to find stylesheet");
