@@ -24,32 +24,23 @@ pub struct User {
 }
 
 pub struct ServerHandler {
-    pub tcp_server: TcpListener,
     pub users: Users,
-}
-
-impl Default for ServerHandler {
-    fn default() -> Self {
-        Self::new()
-    }
 }
 
 impl ServerHandler {
     pub fn new() -> ServerHandler {
-        let tcp_server = TcpListener::bind(TCP_LISTENING_IP).expect("Failed to start TCP server");
-        tcp_server.set_nonblocking(true).unwrap();
-
         ServerHandler {
-            tcp_server,
             users: Arc::new(Mutex::new(HashMap::new())),
         }
     }
 
-    pub async fn start(&mut self, cx: ContextProxy) {
-        let tcp_server = self.tcp_server.try_clone().unwrap();
+    pub async fn start(&mut self, _addr: &str, cx: ContextProxy) {
+        let tcp_server = TcpListener::bind(TCP_LISTENING_IP).expect("Failed to start TCP server");
         tcp_server.set_nonblocking(true).unwrap();
 
         let tcp_users = self.users.clone();
+
+        println!("Server started");
 
         tokio::spawn(async move {
             //let mut clients = vec![];
@@ -94,7 +85,11 @@ impl ServerHandler {
 
                 std::thread::sleep(std::time::Duration::from_millis(LOOP_AWAIT_MS));
             }
-        });
+        })
+        .await
+        .unwrap();
+
+        println!("Server closed");
     }
 
     /// Relay a message coming from a client to all others

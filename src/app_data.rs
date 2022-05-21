@@ -1,8 +1,11 @@
+use std::sync::{Arc, Mutex};
+
+use tokio::runtime::Runtime;
 use vizia::prelude::*;
 
 use crate::client_handler::ClientHandler;
 use crate::server_handler::ServerHandler;
-use crate::{AppEvent, UserMetadata, UserMsg};
+use crate::{AppEvent, UserMetadata, UserMsg, TCP_LISTENING_IP};
 
 #[derive(Lens)]
 pub struct AppData {
@@ -26,8 +29,8 @@ pub struct AppData {
     // List of messages
     pub messages: Vec<UserMsg>,
 
-    pub server: Option<ServerHandler>,
-    pub client: Option<ClientHandler>,
+    pub server: Arc<Mutex<ServerHandler>>,
+    pub client: Arc<Mutex<ClientHandler>>,
 }
 
 impl Model for AppData {
@@ -60,29 +63,33 @@ impl Model for AppData {
             AppEvent::StartServer => {
                 self.show_login = false;
                 println!("Start the server connection!");
-                self.server = Some(ServerHandler::new());
 
-                cx.spawn(|cx| {
-                    self.server.as_mut().unwrap().start(cx).await;
+                let server_ref = self.server.clone();
+
+                cx.spawn(move |cx| {
+                    let rt = Runtime::new().unwrap();
+
+                    rt.block_on(async {
+                        server_ref.lock().unwrap().start(TCP_LISTENING_IP, cx).await;
+                    });
                 });
 
-                let address = format!("{}:{}", self.host_ip.clone(), self.host_port.clone());
-                self.client = Some(ClientHandler::connect(
-                    cx,
-                    address,
-                    self.client_metadata.clone(),
-                ));
+                cx.emit(AppEvent::Connect);
             }
 
             AppEvent::Connect => {
                 self.show_login = false;
-                println!("Connect to server");
                 let address = format!("{}:{}", self.host_ip.clone(), self.host_port.clone());
-                self.client = Some(ClientHandler::connect(
-                    cx,
-                    address,
-                    self.client_metadata.clone(),
-                ));
+                let meta = self.client_metadata.clone();
+                let client = self.client.clone();
+
+                cx.spawn(move |cx| {
+                    let rt = Runtime::new().unwrap();
+
+                    rt.block_on(async {
+                        client.lock().unwrap().connect(cx, address, meta).await;
+                    });
+                });
             }
 
             AppEvent::SendMessage(msg) => {
@@ -92,7 +99,7 @@ impl Model for AppData {
                 };
 
                 self.messages.push(msg.clone());
-                self.client.as_mut().unwrap().send(&msg);
+                self.client.lock().unwrap().send(&msg);
                 println!("Send message: {:?}", msg);
             }
 

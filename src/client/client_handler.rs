@@ -1,86 +1,85 @@
 use std::{
-    net::TcpStream,
-    sync::mpsc::{self, Sender, TryRecvError},
+    net::{SocketAddr, TcpStream, ToSocketAddrs},
+    sync::{
+        mpsc::{self, Receiver, Sender, TryRecvError},
+        Arc, Mutex,
+    },
+    time::Duration,
 };
 
 pub use vizia::prelude::*;
 
 use crate::{
-    interchange::{read_from_stream, write_to_stream, ReadStreamError},
+    interchange::{is_data_available, read_from_stream, write_to_stream, ReadStreamError},
     AppEvent, Msg, UserCursor, UserMetadata, UserMsg,
 };
 
 pub struct ClientHandler {
-    pub metadata: UserMetadata,
     pub sender: Sender<UserMsg>,
+    rcv: Arc<Mutex<Receiver<UserMsg>>>,
 }
 
 impl ClientHandler {
-    pub fn connect(cx: &mut Context, addr: String, metadata: UserMetadata) -> ClientHandler {
+    pub fn new() -> Self {
+        let (tx, rx) = mpsc::channel::<UserMsg>();
+        Self {
+            sender: tx,
+            rcv: Arc::new(Mutex::new(rx)),
+        }
+    }
+
+    pub async fn connect(&mut self, cx: ContextProxy, addr: String, metadata: UserMetadata) {
         println!("{}", addr);
-        let mut client = TcpStream::connect(addr).expect("Failed to connect");
+        let mut client = TcpStream::connect_timeout(&addr.parse().unwrap(), Duration::from_secs(1))
+            .expect("Failed to connect");
         client.set_nonblocking(true).unwrap();
+
+        let receiver = self.rcv.clone();
 
         // Send metadata
         write_to_stream(&mut client, &Msg::Metadata(metadata.clone()));
 
-        let (tx, rx) = mpsc::channel::<UserMsg>();
-        let metadata2 = metadata.clone();
-        cx.spawn(move |cx| loop {
-            let mousex = *cx.cursorx.lock().unwrap();
-            let mousey = *cx.cursory.lock().unwrap();
-            write_to_stream(
-                &mut client,
-                &Msg::UserCursor(UserCursor {
-                    user_metadata: metadata2.clone(),
-                    cursor: (mousex, mousey),
-                }),
-            );
+        tokio::spawn(async move {
+            loop {
+                Self::send_cursor_info(cx.clone(), metadata.clone(), &mut client);
 
-            match read_from_stream(&mut client) {
-                Ok(msg) => {
-                    // Handle messages
-                    match msg {
-                        Msg::Metadata(_meta) => println!("Thanks, bud."),
-                        Msg::UserMsg(usermsg) => {
-                            cx.emit(AppEvent::AppendMessage(usermsg.clone()))
-                                .expect("Failed to send message back to app");
+                if is_data_available(&mut client) {
+                    match read_from_stream(&mut client) {
+                        Ok(msg) => {
+                            // Handle messages
+                            if let Msg::UserMsg(usermsg) = msg {
+                                cx.emit(AppEvent::AppendMessage(usermsg.clone()))
+                                    .expect("Failed to send message back to app");
+                            }
                         }
-                        // Msg::UserCursor(cursormsg) => cx
-                        //     .emit(AppEvent::ChangeCursorPosition(cursormsg.cursor_position))
-                        //     .expect("Failed to send message back to app"),
-                        _ => {}
+                        Err(err) => match err {
+                            ReadStreamError::IOError(_err) => {
+                                // eprintln!("IO Error while trying to read a new message {:?}", err)
+                            }
+                            ReadStreamError::BuffSize0 => {
+                                eprintln!("Next message buffer size was 0");
+                                // TODO: Close connection
+                                break;
+                            }
+                        },
                     }
                 }
-                Err(err) => match err {
-                    ReadStreamError::IOError(_err) => {
-                        // eprintln!("IO Error while trying to read a new message {:?}", err)
-                    }
-                    ReadStreamError::BuffSize0 => {
-                        eprintln!("Next message buffer size was 0");
-                        // TODO: Close connection
-                        break;
-                    }
-                },
-            }
 
-            match rx.try_recv() {
-                Ok(msg) => {
-                    write_to_stream(&mut client, &Msg::UserMsg(msg));
+                match receiver.lock().unwrap().try_recv() {
+                    Ok(msg) => {
+                        write_to_stream(&mut client, &Msg::UserMsg(msg));
+                    }
+
+                    Err(TryRecvError::Empty) => (),
+
+                    Err(TryRecvError::Disconnected) => break,
                 }
 
-                Err(TryRecvError::Empty) => (),
-
-                Err(TryRecvError::Disconnected) => break,
+                std::thread::sleep(std::time::Duration::from_millis(20));
             }
-
-            std::thread::sleep(std::time::Duration::from_millis(20));
-        });
-
-        ClientHandler {
-            metadata,
-            sender: tx,
-        }
+        })
+        .await
+        .unwrap();
     }
 
     pub fn send(&mut self, msg: &UserMsg) {
@@ -88,5 +87,17 @@ impl ClientHandler {
         self.sender
             .send(msg.clone())
             .expect("Failed to send message");
+    }
+
+    fn send_cursor_info(cx: ContextProxy, meta: UserMetadata, client: &mut std::net::TcpStream) {
+        let mousex = *cx.cursorx.lock().unwrap();
+        let mousey = *cx.cursory.lock().unwrap();
+        write_to_stream(
+            client,
+            &Msg::UserCursor(UserCursor {
+                user_metadata: meta,
+                cursor: (mousex, mousey),
+            }),
+        );
     }
 }

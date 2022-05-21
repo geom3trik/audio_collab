@@ -57,3 +57,11 @@ pub fn read_from_stream(stream: &mut TcpStream) -> Result<Msg, ReadStreamError> 
         &buff.into_iter().take_while(|&x| x != 0).collect::<Vec<_>>(),
     ))
 }
+
+pub fn is_data_available(stream: &mut TcpStream) -> bool {
+    let mut buff = [0; MSG_BUF_SIZE];
+    if let Ok(len) = stream.peek(&mut buff) {
+        return len != 0;
+    }
+    false
+}

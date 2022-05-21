@@ -1,3 +1,7 @@
+use std::sync::{Arc, Mutex};
+
+use client::client_handler::ClientHandler;
+use server::server_handler::ServerHandler;
 use vizia::prelude::*;
 
 pub mod ui;
@@ -42,8 +46,8 @@ async fn main() {
             clients: Vec::new(),
             server_password: String::new(),
             messages: Vec::new(),
-            client: None,
-            server: None,
+            client: Arc::new(Mutex::new(ClientHandler::new())),
+            server: Arc::new(Mutex::new(ServerHandler::new())),
         }
         .build(cx);
 
