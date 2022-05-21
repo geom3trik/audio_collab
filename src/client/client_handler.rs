@@ -16,7 +16,7 @@ use crate::{
 
 pub struct ClientHandler {
     pub sender: Sender<UserMsg>,
-    rcv: Arc<Mutex<Receiver<UserMsg>>>,
+    rcv: Receiver<UserMsg>,
 }
 
 impl ClientHandler {
@@ -24,17 +24,20 @@ impl ClientHandler {
         let (tx, rx) = mpsc::channel::<UserMsg>();
         Self {
             sender: tx,
-            rcv: Arc::new(Mutex::new(rx)),
+            rcv: rx,
         }
     }
 
-    pub async fn connect(&mut self, cx: ContextProxy, addr: String, metadata: UserMetadata) {
+    pub async fn connect(
+        handler: Arc<Mutex<Self>>,
+        cx: ContextProxy,
+        addr: String,
+        metadata: UserMetadata,
+    ) {
         println!("{}", addr);
         let mut client = TcpStream::connect_timeout(&addr.parse().unwrap(), Duration::from_secs(1))
             .expect("Failed to connect");
         client.set_nonblocking(true).unwrap();
-
-        let receiver = self.rcv.clone();
 
         // Send metadata
         write_to_stream(&mut client, &Msg::Metadata(metadata.clone()));
@@ -65,7 +68,7 @@ impl ClientHandler {
                     }
                 }
 
-                match receiver.lock().unwrap().try_recv() {
+                match handler.lock().unwrap().rcv.try_recv() {
                     Ok(msg) => {
                         write_to_stream(&mut client, &Msg::UserMsg(msg));
                     }

@@ -1,3 +1,4 @@
+use std::net::SocketAddr;
 use std::sync::{Arc, Mutex};
 
 use tokio::runtime::Runtime;
@@ -20,6 +21,8 @@ pub struct AppData {
     pub host_ip: String,
     // The host port. Used by the client to connect to the host.
     pub host_port: String,
+
+    pub client_addr: Option<SocketAddr>,
 
     pub client_metadata: UserMetadata,
     pub clients: Vec<UserMetadata>,
@@ -87,7 +90,7 @@ impl Model for AppData {
                     let rt = Runtime::new().unwrap();
 
                     rt.block_on(async {
-                        client.lock().unwrap().connect(cx, address, meta).await;
+                        ClientHandler::connect(client, cx, address, meta).await;
                     });
                 });
             }

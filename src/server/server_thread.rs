@@ -46,7 +46,7 @@ impl ServerThread {
                                         .expect("Failed to send message to rx");
                                 }
                                 Msg::UserCursor(cursor) => {
-                                    println!("Cursor updated from client: {:?}", cursor);
+                                    // println!("Cursor updated from client: {:?}", cursor);
                                     usr.metadata.cursor = cursor.cursor;
                                     tx.send((usr.addr, Msg::UserCursor(cursor.clone())))
                                         .expect("Failed to send message to rx");
