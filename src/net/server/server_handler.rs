@@ -34,7 +34,7 @@ impl ServerHandler {
         }
     }
 
-    pub async fn start(&mut self, _addr: &str, cx: ContextProxy) {
+    pub fn start(&mut self, _addr: &str, cx: ContextProxy) {
         let tcp_server = TcpListener::bind(TCP_LISTENING_IP).expect("Failed to start TCP server");
         tcp_server.set_nonblocking(true).unwrap();
 
