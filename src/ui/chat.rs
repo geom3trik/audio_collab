@@ -1,6 +1,9 @@
 use vizia::prelude::*;
 
-use crate::{AppData, AppEvent, ClientOrHost, UserMetadata, UserMsg};
+use crate::{
+    net::{UserMetadata, UserMsg},
+    AppData, AppEvent, ClientOrHost,
+};
 
 #[derive(Lens)]
 pub struct ChatUI {

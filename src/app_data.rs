@@ -1,12 +1,13 @@
-use std::net::SocketAddr;
 use std::sync::{Arc, Mutex};
 
-use tokio::runtime::Runtime;
 use vizia::prelude::*;
 
-use crate::client_handler::ClientHandler;
-use crate::server_handler::ServerHandler;
-use crate::{AppEvent, UserMetadata, UserMsg, TCP_LISTENING_IP};
+use crate::{
+    net::{
+        client_handler::ClientHandler, server_handler::ServerHandler, Msg, UserMetadata, UserMsg,
+    },
+    AppEvent,
+};
 
 #[derive(Lens)]
 pub struct AppData {
@@ -22,8 +23,6 @@ pub struct AppData {
     // The host port. Used by the client to connect to the host.
     pub host_port: String,
 
-    pub client_addr: Option<SocketAddr>,
-
     pub client_metadata: UserMetadata,
     pub clients: Vec<UserMetadata>,
 
@@ -32,12 +31,12 @@ pub struct AppData {
     // List of messages
     pub messages: Vec<UserMsg>,
 
-    pub server: Arc<Mutex<ServerHandler>>,
-    pub client: Arc<Mutex<ClientHandler>>,
+    pub server: Option<ServerHandler>,
+    pub client: ClientHandler,
 }
 
 impl Model for AppData {
-    fn event(&mut self, cx: &mut Context, event: &mut Event) {
+    fn event(&mut self, mut cx: &mut Context, event: &mut Event) {
         event.map(|app_event, _| match app_event {
             AppEvent::SetClientOrHost(client_or_host) => {
                 self.client_or_host = *client_or_host;
@@ -66,33 +65,28 @@ impl Model for AppData {
             AppEvent::StartServer => {
                 self.show_login = false;
                 println!("Start the server connection!");
+                self.server = Some(ServerHandler::new(cx));
 
-                let server_ref = self.server.clone();
+                self.server.as_mut().unwrap().start();
 
-                cx.spawn(move |cx| {
-                    let rt = Runtime::new().unwrap();
+                let address = format!("{}:{}", self.host_ip.clone(), self.host_port.clone());
 
-                    rt.block_on(async {
-                        server_ref.lock().unwrap().start(TCP_LISTENING_IP, cx).await;
-                    });
-                });
-
-                cx.emit(AppEvent::Connect);
+                self.client.connect_and_run(
+                    &mut cx,
+                    address,
+                    Arc::new(Mutex::new(self.client_metadata.clone())),
+                );
             }
 
             AppEvent::Connect => {
                 self.show_login = false;
+                println!("Connect to server");
                 let address = format!("{}:{}", self.host_ip.clone(), self.host_port.clone());
-                let meta = self.client_metadata.clone();
-                let client = self.client.clone();
-
-                cx.spawn(move |cx| {
-                    let rt = Runtime::new().unwrap();
-
-                    rt.block_on(async {
-                        ClientHandler::connect(client, cx, address, meta).await;
-                    });
-                });
+                self.client.connect_and_run(
+                    &mut cx,
+                    address,
+                    Arc::new(Mutex::new(self.client_metadata.clone())),
+                );
             }
 
             AppEvent::SendMessage(msg) => {
@@ -102,7 +96,7 @@ impl Model for AppData {
                 };
 
                 self.messages.push(msg.clone());
-                self.client.lock().unwrap().send(&msg);
+                self.client.send(&Msg::UserMsg(msg.clone()));
                 println!("Send message: {:?}", msg);
             }
 

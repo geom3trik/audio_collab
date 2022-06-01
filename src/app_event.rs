@@ -1,6 +1,6 @@
 use vizia::prelude::*;
 
-use crate::{ClientOrHost, UserMetadata, UserMsg};
+use crate::{ClientOrHost, net::{UserMsg, UserMetadata}};
 
 pub enum AppEvent {
     ToggleLoginScreen,

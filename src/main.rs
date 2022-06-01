@@ -1,11 +1,10 @@
-use std::sync::{Arc, Mutex};
-
-use client::client_handler::ClientHandler;
-use server::server_handler::ServerHandler;
+use net::{UserMetadata, client_handler::ClientHandler};
 use vizia::prelude::*;
 
 pub mod ui;
 pub use ui::*;
+
+pub mod net;
 
 pub mod app_data;
 pub use app_data::*;
@@ -13,18 +12,10 @@ pub use app_data::*;
 pub mod app_event;
 pub use app_event::*;
 
-pub mod client;
-pub use client::*;
-
-pub mod server;
-pub use server::*;
-
-pub mod messages;
-pub use messages::*;
-
 static SUIT_SEMIBOLD: &[u8] = include_bytes!("resources/SUIT-SemiBold.ttf");
 
-fn main() {
+#[tokio::main]
+async fn main() {
     Application::new(|cx| {
         cx.add_stylesheet("src/ui/connect_style.css")
             .expect("Failed to find stylesheet");
@@ -42,12 +33,11 @@ fn main() {
                 color: String::from("F54E47"),
                 cursor: (0.0, 0.0),
             },
-            client_addr: None,
             clients: Vec::new(),
             server_password: String::new(),
             messages: Vec::new(),
-            client: Arc::new(Mutex::new(ClientHandler::new())),
-            server: Arc::new(Mutex::new(ServerHandler::new())),
+            server: None,
+            client: ClientHandler::new(),
         }
         .build(cx);
 
