@@ -6,11 +6,14 @@ use tokio::{
 };
 pub use vizia::prelude::*;
 
-use crate::{net::{
-    interchange::{quick_send_msg, read_frame_from_any},
-    server_thread::ServerThread,
-    Msg, UserMetadata, LISTENING_IP, LOOP_AWAIT_MS,
-}, AppEvent};
+use crate::{
+    net::{
+        interchange::{quick_send_msg, read_frame_from_any},
+        server_thread::ServerThread,
+        Msg, UserMetadata, LISTENING_IP, LOOP_AWAIT_MS,
+    },
+    AppEvent,
+};
 
 pub type Users = Arc<Mutex<HashMap<SocketAddr, (Arc<Mutex<User>>, ServerThread)>>>;
 
@@ -33,13 +36,17 @@ pub struct ServerHandler {
 
 impl ServerHandler {
     pub fn new(cx: &mut Context) -> ServerHandler {
-        let socket = tokio::runtime::Runtime::new().unwrap().block_on(async {
+        dbg!("Setting up the handler");
+        let rt = tokio::runtime::Runtime::new().unwrap();
+        dbg!("Runtime");
+        let socket = rt.block_on(async {
             Arc::new(
                 UdpSocket::bind(LISTENING_IP)
                     .await
                     .expect("Failed to start TCP server"),
             )
         });
+        dbg!("Sockets");
         let socket_ref = socket.clone();
 
         let users = Arc::new(Mutex::new(HashMap::new()));
@@ -47,8 +54,6 @@ impl ServerHandler {
         let users_ref2 = users.clone();
 
         cx.spawn(move |cx| {
-            let rt = tokio::runtime::Runtime::new().unwrap();
-
             // Spawn a thread that creates each thread for each user
             let (tx, mut rx) = mpsc::channel::<(SocketAddr, Msg)>(16);
             rt.spawn(async move {

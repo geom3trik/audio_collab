@@ -1,4 +1,4 @@
-use net::{UserMetadata, client_handler::ClientHandler};
+use net::{client_handler::ClientHandler, UserMetadata};
 use vizia::prelude::*;
 
 pub mod ui;
@@ -14,8 +14,7 @@ pub use app_event::*;
 
 static SUIT_SEMIBOLD: &[u8] = include_bytes!("resources/SUIT-SemiBold.ttf");
 
-#[tokio::main]
-async fn main() {
+fn main() {
     Application::new(|cx| {
         cx.add_stylesheet("src/ui/connect_style.css")
             .expect("Failed to find stylesheet");
